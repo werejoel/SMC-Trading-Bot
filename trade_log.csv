@@ -1,0 +1,17 @@
+timestamp,symbol,signal_type,entry_price,stop_loss,take_profit,confidence,reason,risk_reward_ratio
+2025-03-21 07:49:05,XRP/USDT,long,2.3806,2.382576,2.376648,high,Failed breakout at liquidity low,2.0
+2025-03-21 08:01:09,SOL/USDT,short,127.03,130.1688,123.33,high,Price at supply zone with bearish confirmation,1.1787944437364548
+2025-03-21 08:01:09,SOL/USDT,short,127.03,131.4111,120.86999999999998,high,Price at supply zone with bearish confirmation,1.4060395791011435
+2025-03-21 08:01:09,SOL/USDT,long,127.03,129.7912,121.5076,medium,Failed breakout at liquidity low,2.0
+2025-03-21 08:01:20,ADA/USDT,short,0.7097,0.731139,0.6813,high,Price at supply zone with bearish confirmation,1.3246886515229257
+2025-03-21 08:01:20,ADA/USDT,long,0.7097,0.716282,0.696536,high,Failed breakout at liquidity low,2.0
+2025-03-21 08:18:41,XRP/USDT,short,2.3838,2.4174,2.3166,medium,Failed breakout at liquidity high,2.0
+2025-03-21 08:18:41,XRP/USDT,long,2.3838,2.382576,2.386248,high,Failed breakout at liquidity low,2.0
+2025-03-21 08:21:56,XRP/USDT,long,2.3807,2.382576,2.3769480000000005,high,Failed breakout at liquidity low,2.0
+2025-03-21 08:23:10,SOL/USDT,short,126.46,130.1688,121.62,high,Price at supply zone with bearish confirmation,1.3050043140638452
+2025-03-21 08:23:10,SOL/USDT,short,126.46,128.1791,125.56,high,Price at supply zone with bearish confirmation,0.5235297539410154
+2025-03-21 08:23:10,SOL/USDT,long,126.46,129.7912,119.79759999999996,medium,Failed breakout at liquidity low,2.0
+2025-03-21 08:23:21,ADA/USDT,long,0.7054,0.716282,0.6836360000000001,high,Failed breakout at liquidity low,2.0
+2025-03-21 08:23:21,ADA/USDT,long,0.7054,0.6977599999999999,0.7206800000000002,high,Failed breakout at liquidity low,2.0
+2025-03-21 08:31:31,XRP/USDT,short,2.3857,2.4174,2.3223,medium,Failed breakout at liquidity high,2.0
+2025-03-21 08:31:31,XRP/USDT,long,2.3857,2.382576,2.391948,high,Failed breakout at liquidity low,2.0
