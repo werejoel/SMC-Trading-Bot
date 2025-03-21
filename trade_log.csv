@@ -15,3 +15,49 @@ timestamp,symbol,signal_type,entry_price,stop_loss,take_profit,confidence,reason
 2025-03-21 08:23:21,ADA/USDT,long,0.7054,0.6977599999999999,0.7206800000000002,high,Failed breakout at liquidity low,2.0
 2025-03-21 08:31:31,XRP/USDT,short,2.3857,2.4174,2.3223,medium,Failed breakout at liquidity high,2.0
 2025-03-21 08:31:31,XRP/USDT,long,2.3857,2.382576,2.391948,high,Failed breakout at liquidity low,2.0
+2025-03-21 09:18:44,XRP/USDT,long,2.3725,2.382576,2.3523480000000005,high,Failed breakout at liquidity low,2.0
+2025-03-21 09:18:44,XRP/USDT,long,2.3725,2.34122,2.4350600000000004,high,Failed breakout at liquidity low,2.0
+2025-03-21 09:21:29,SOL/USDT,short,125.03,128.1791,121.27,high,Price at supply zone with bearish confirmation,1.1939919342034186
+2025-03-21 09:41:19,ETH/USDT,short,1960.62,1984.5528,1912.7544,high,Failed breakout at liquidity high,2.0
+2025-03-21 09:47:17,ETH/USDT,short,1963.26,1984.5528,1920.6744,high,Failed breakout at liquidity high,2.0
+2025-03-21 09:47:18,XRP/USDT,short,2.3868,2.4174,2.3256,medium,Failed breakout at liquidity high,2.0
+2025-03-21 09:47:18,XRP/USDT,long,2.3868,2.382576,2.3952480000000005,high,Failed breakout at liquidity low,2.0
+2025-03-21 09:47:19,SOL/USDT,short,125.9,128.1791,123.88000000000002,high,Price at supply zone with bearish confirmation,0.8863147733754474
+2025-03-21 09:47:19,SOL/USDT,long,125.9,129.7912,118.1176,medium,Failed breakout at liquidity low,2.0
+2025-03-21 09:47:19,SOL/USDT,long,125.9,124.117,129.466,medium,Failed breakout at liquidity low,2.0
+2025-03-21 09:47:21,ADA/USDT,long,0.7084,0.716282,0.6926360000000001,high,Failed breakout at liquidity low,2.0
+2025-03-21 09:47:21,ADA/USDT,long,0.7084,0.6977599999999999,0.7296800000000002,high,Failed breakout at liquidity low,2.0
+2025-03-21 09:49:03,ETH/USDT,short,1963.75,2024.242,1882.85,high,Price at supply zone with bearish confirmation,1.3373669245520092
+2025-03-21 09:49:03,ETH/USDT,short,1963.75,1984.5528,1922.1444,high,Failed breakout at liquidity high,2.0
+2025-03-21 09:50:59,XRP/USDT,long,2.3905,2.382576,2.406348,high,Failed breakout at liquidity low,2.0
+2025-03-21 11:24:30,ETH/USDT,short,1967.16,2024.242,1893.08,high,Price at supply zone with bearish confirmation,1.297782137976947
+2025-03-21 11:32:08,ETH/USDT,short,1970.01,2024.242,1901.63,high,Price at supply zone with bearish confirmation,1.2608791857206103
+2025-03-21 11:32:17,XRP/USDT,long,2.4114,2.382576,2.4690480000000004,high,Failed breakout at liquidity low,2.0
+2025-03-21 11:32:28,SOL/USDT,short,126.6,130.1688,122.04,high,Price at supply zone with bearish confirmation,1.2777404169468698
+2025-03-21 11:32:28,SOL/USDT,short,126.6,131.4111,119.57999999999996,high,Price at supply zone with bearish confirmation,1.4591257716530572
+2025-03-21 11:32:28,SOL/USDT,long,126.6,129.7912,120.21759999999998,medium,Failed breakout at liquidity low,2.0
+2025-03-21 11:32:44,ADA/USDT,short,0.7121,0.731139,0.6884999999999999,high,Price at supply zone with bearish confirmation,1.2395609013078437
+2025-03-21 11:32:44,ADA/USDT,long,0.7121,0.716282,0.7037359999999999,high,Failed breakout at liquidity low,2.0
+2025-03-21 11:44:53,ETH/USDT,short,1974.24,2024.242,1914.32,high,Price at supply zone with bearish confirmation,1.198352065917366
+2025-03-21 11:45:18,XRP/USDT,long,2.4139,2.382576,2.476548,high,Failed breakout at liquidity low,2.0
+2025-03-21 11:45:54,SOL/USDT,short,128.85,131.4111,126.32999999999996,high,Price at supply zone with bearish confirmation,0.9839522080356208
+2025-03-21 11:45:54,SOL/USDT,long,128.85,129.7912,126.96759999999998,medium,Failed breakout at liquidity low,2.0
+2025-03-21 12:03:33,ETH/USDT,short,1969.21,2024.242,1899.23,high,Price at supply zone with bearish confirmation,1.271623782526532
+2025-03-21 12:03:47,XRP/USDT,short,2.3981,2.4174,2.3595,medium,Failed breakout at liquidity high,2.0
+2025-03-21 12:03:47,XRP/USDT,long,2.3981,2.382576,2.429148,high,Failed breakout at liquidity low,2.0
+2025-03-21 12:04:04,SOL/USDT,short,127.43,130.1688,124.53000000000004,high,Price at supply zone with bearish confirmation,1.058857893968154
+2025-03-21 12:04:04,SOL/USDT,short,127.43,131.4111,122.07,high,Price at supply zone with bearish confirmation,1.3463615583632706
+2025-03-21 12:04:04,SOL/USDT,long,127.43,129.7912,122.7076,medium,Failed breakout at liquidity low,2.0
+2025-03-21 12:04:22,ADA/USDT,short,0.7114,0.731139,0.6864000000000001,high,Price at supply zone with bearish confirmation,1.266528192917573
+2025-03-21 12:04:22,ADA/USDT,long,0.7114,0.716282,0.7016360000000001,high,Failed breakout at liquidity low,2.0
+2025-03-21 12:05:21,ETH/USDT,short,1968.68,2024.242,1897.64,high,Price at supply zone with bearish confirmation,1.2785716856844622
+2025-03-21 12:10:57,ETH/USDT,short,1970.4,2024.242,1902.8,high,Price at supply zone with bearish confirmation,1.255525426247169
+2025-03-21 12:14:15,ETH/USDT,short,1970.52,2024.242,1903.16,high,Price at supply zone with bearish confirmation,1.2538624771974267
+2025-03-21 12:14:32,XRP/USDT,short,2.4044,2.4174,2.378399999999999,medium,Failed breakout at liquidity high,2.0
+2025-03-21 12:14:32,XRP/USDT,long,2.4044,2.382576,2.448048,high,Failed breakout at liquidity low,2.0
+2025-03-21 12:15:34,SOL/USDT,short,127.9,130.1688,125.94000000000004,high,Price at supply zone with bearish confirmation,0.8638928067700902
+2025-03-21 12:15:34,SOL/USDT,short,127.9,131.4111,123.48,high,Price at supply zone with bearish confirmation,1.2588647432428632
+2025-03-21 12:15:34,SOL/USDT,long,127.9,129.7912,124.1176,medium,Failed breakout at liquidity low,2.0
+2025-03-21 12:17:04,ADA/USDT,short,0.7143,0.731139,0.6951000000000002,high,Price at supply zone with bearish confirmation,1.140210226260464
+2025-03-21 12:17:04,ADA/USDT,long,0.7143,0.716282,0.7103360000000002,high,Failed breakout at liquidity low,2.0
+2025-03-21 12:22:12,ETH/USDT,short,1973.23,2024.242,1911.29,high,Price at supply zone with bearish confirmation,1.2142241041323634
