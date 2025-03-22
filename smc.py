@@ -10,9 +10,12 @@ from datetime import datetime, timedelta
 import time
 import warnings
 warnings.filterwarnings('ignore')
+from config import MT5_CONFIG, API_KEYS
 
-# API Configuration
-ALPHA_VANTAGE_API_KEY = "QXSusRsprQl3pc52G1RV8Iq2UJ4QlAbtSvTI9FK9ddzVrBne3pn0rIVY6Zfl1IjH"
+# Replace API Configuration section
+ALPHA_VANTAGE_API_KEY = API_KEYS['alphavantage']
+OANDA_API_KEY = API_KEYS['oanda']
+MT5_TERMINAL_PATH = MT5_CONFIG['path']
 
 # Initialize exchange (using ccxt)
 def initialize_exchange(exchange_id='binance', api_key=None, secret=None):
@@ -25,6 +28,115 @@ def initialize_exchange(exchange_id='binance', api_key=None, secret=None):
     return exchange
 
 exchange = initialize_exchange()
+
+def initialize_forex_connection():
+    """Initialize connection for forex data"""
+    try:
+        import MetaTrader5 as mt5
+        if not mt5.initialize(
+            path=MT5_CONFIG['path'],
+            login=MT5_CONFIG['login'],
+            password=MT5_CONFIG['password'],
+            server=MT5_CONFIG['server'],
+            timeout=MT5_CONFIG['timeout']
+        ):
+            print("MT5 initialization failed")
+            return None
+        return mt5
+    except ImportError:
+        print("MetaTrader5 package not found. Using alternative data source.")
+        return None
+
+def fetch_forex_data(symbol, timeframe, limit=200):
+    """
+    Fetch forex/commodities data from multiple sources
+    Supported symbols: XAUUSD, GBPJPY, USDJPY, USOIL
+    """
+    # Convert timeframe to MT5 format
+    tf_map = {
+        '1m': '1',
+        '5m': '5',
+        '15m': '15',
+        '30m': '30',
+        '1h': '60',
+        '4h': '240',
+        '1d': '1440'
+    }
+    
+    # Try MetaTrader5 first
+    mt5 = initialize_forex_connection()
+    if mt5:
+        try:
+            # Convert symbol format
+            mt5_symbol = symbol.replace('XAU', 'GOLD').replace('/', '')
+            
+            # Get timeframe constant
+            tf_constant = getattr(mt5.TIMEFRAME_M1 if tf_map[timeframe] == '1' else
+                                mt5.TIMEFRAME_M5 if tf_map[timeframe] == '5' else
+                                mt5.TIMEFRAME_M15 if tf_map[timeframe] == '15' else
+                                mt5.TIMEFRAME_M30 if tf_map[timeframe] == '30' else
+                                mt5.TIMEFRAME_H1 if tf_map[timeframe] == '60' else
+                                mt5.TIMEFRAME_H4 if tf_map[timeframe] == '240' else
+                                mt5.TIMEFRAME_D1)
+
+            # Fetch data
+            rates = mt5.copy_rates_from_pos(mt5_symbol, tf_constant, 0, limit)
+            if rates is not None and len(rates) > 0:
+                df = pd.DataFrame(rates)
+                df['timestamp'] = pd.to_datetime(df['time'], unit='s')
+                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+                df = df.rename(columns={
+                    'open': 'open',
+                    'high': 'high',
+                    'low': 'low',
+                    'close': 'close',
+                    'tick_volume': 'volume'
+                })
+                return df
+
+        except Exception as e:
+            print(f"MT5 data fetch error: {e}")
+
+    # Fallback to Alpha Vantage for forex data
+    if 'USD' in symbol or 'JPY' in symbol:
+        try:
+            base = symbol[:3]
+            quote = symbol[3:]
+            url = f"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={base}&to_symbol={quote}&apikey={ALPHA_VANTAGE_API_KEY}"
+            response = requests.get(url)
+            data = response.json()
+            
+            if "Time Series FX (Daily)" in data:
+                df = pd.DataFrame.from_dict(data["Time Series FX (Daily)"], orient='index')
+                df = df.rename(columns={
+                    '1. open': 'open',
+                    '2. high': 'high',
+                    '3. low': 'low',
+                    '4. close': 'close'
+                })
+                df = df.astype(float)
+                df.index = pd.to_datetime(df.index)
+                df = df.sort_index()
+                df['volume'] = 0
+                df = df.reset_index()
+                df = df.rename(columns={'index': 'timestamp'})
+                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+                return df.tail(limit)
+
+        except Exception as e:
+            print(f"Alpha Vantage data fetch error: {e}")
+
+    # Last resort: Try CCXT for available symbols
+    try:
+        # Modify symbol format for CCXT
+        ccxt_symbol = symbol.replace('XAU', 'GOLD')
+        if 'OIL' in symbol:
+            ccxt_symbol = 'USOIL/USD'
+            
+        return fetch_data(ccxt_symbol, timeframe, limit, source='ccxt')
+    except Exception as e:
+        print(f"CCXT data fetch error: {e}")
+        return None
 
 # Fetch market data with retry mechanism
 def fetch_data(symbol, timeframe, limit=200, source='ccxt'):
@@ -156,7 +268,8 @@ def identify_liquidity_zones(df, window=10, threshold_pct=0.005):
 # ===== SUPPLY AND DEMAND ZONES =====
 def identify_supply_demand_zones(df, window=20, rejection_threshold=0.02):
     """
-    Identify supply and demand zones based on price rejection and volume
+    Identify supply and demand zones based on price rejection and volume.
+    Refined criteria for demand zones to improve accuracy.
     """
     zones = []
     
@@ -166,7 +279,7 @@ def identify_supply_demand_zones(df, window=20, rejection_threshold=0.02):
         # - Followed by price moving down
         # - Higher than average volume
         
-        if (df['open'][i] - df['close'][i]) > (df['high'][i] - df['low'][i]) * 0.4:  # Strong bearish candle
+        if (df['open'][i] - df['close'][i]) > (df['high'][i] - df['low'][i]) * 0.5:  # Strong bearish candle
             # Check if price moved down after this candle
             avg_price_after = df['close'][i+1:i+6].mean()
             if avg_price_after < df['close'][i]:
@@ -180,12 +293,13 @@ def identify_supply_demand_zones(df, window=20, rejection_threshold=0.02):
                         'strength': df['volume'][i] / df['volume'][i-10:i+10].mean()
                     })
         
-        # Demand zone criteria:
+        # Refined demand zone criteria:
         # - A strong bullish candle (close much higher than open)
         # - Followed by price moving up
         # - Higher than average volume
+        # - Candle body must be at least 50% of the total range
         
-        if (df['close'][i] - df['open'][i]) > (df['high'][i] - df['low'][i]) * 0.4:  # Strong bullish candle
+        if (df['close'][i] - df['open'][i]) > (df['high'][i] - df['low'][i]) * 0.5:  # Strong bullish candle
             # Check if price moved up after this candle
             avg_price_after = df['close'][i+1:i+6].mean()
             if avg_price_after > df['close'][i]:
@@ -369,78 +483,68 @@ def identify_candlestick_patterns(df):
 
 
 # ===== SMART ENTRY POINTS =====
-def calculate_smart_entry_points(df, liquidity_zones, supply_demand_zones, candlestick_patterns):
+def calculate_smart_entry_points(df, liquidity_zones, supply_demand_zones, candlestick_patterns, fair_value_gaps, order_blocks):
     """
-    Calculate smart entry points based on multiple factors
+    Calculate smart entry points based on multiple factors.
+    Entry points are valid only when:
+    - Unmitigated FVG is present
+    - Order block is present
+    - Liquidity is present to tap into the point
+    - Institutional entry alignment is satisfied
     """
     entries = []
     last_row = df.iloc[-1]
     current_price = last_row['close']
     
-    # Get recent patterns
-    recent_patterns = candlestick_patterns[candlestick_patterns['timestamp'] > df['timestamp'].iloc[-10]]
+    # Filter unmitigated FVGs
+    unmitigated_fvgs = fair_value_gaps[fair_value_gaps['filled'] == False]
+    
+    # Filter liquidity zones to only include those that are required to be taken out
+    required_liquidity = liquidity_zones[
+        (liquidity_zones['type'] == 'liquidity_high') & (liquidity_zones['level'] > current_price) |
+        (liquidity_zones['type'] == 'liquidity_low') & (liquidity_zones['level'] < current_price)
+    ]
+    
+    # Filter unmitigated order blocks
+    unmitigated_blocks = order_blocks[order_blocks['mitigated'] == False]
     
     # Factor 1: Entry near strong demand zones during uptrends
     if last_row['ema20'] > last_row['ema50']:  # Uptrend condition
         for _, zone in supply_demand_zones[supply_demand_zones['type'] == 'demand'].iterrows():
             if zone['top'] < current_price < zone['top'] * 1.02:  # Price just above demand zone
-                # Check if we have bullish patterns nearby
-                has_bullish_pattern = any(pattern['significance'] == 'bullish' for _, pattern in recent_patterns.iterrows())
-                
-                if has_bullish_pattern:
-                    entries.append({
-                        'type': 'long',
-                        'entry_price': current_price,
-                        'stop_loss': zone['bottom'] * 0.99,  # Stop just below demand zone
-                        'take_profit': current_price + (current_price - zone['bottom']) * 2,  # 1:2 risk-reward
-                        'confidence': 'high',
-                        'reason': 'Price at demand zone with bullish confirmation'
-                    })
+                # Check if required liquidity is taken out
+                if not required_liquidity.empty and all(current_price > liquidity['level'] for _, liquidity in required_liquidity.iterrows()):
+                    # Check if unmitigated FVG is present
+                    if not unmitigated_fvgs.empty and any(zone['bottom'] <= fvg['bottom'] <= zone['top'] for _, fvg in unmitigated_fvgs.iterrows()):
+                        # Check if unmitigated order block is present
+                        if not unmitigated_blocks.empty and any(zone['bottom'] <= block['low'] <= zone['top'] for _, block in unmitigated_blocks.iterrows()):
+                            entries.append({
+                                'type': 'long',
+                                'entry_price': current_price,
+                                'stop_loss': zone['bottom'] * 0.99,  # Stop just below demand zone
+                                'take_profit': current_price + (current_price - zone['bottom']) * 2,  # 1:2 risk-reward
+                                'confidence': 'high',
+                                'reason': 'Price at demand zone with unmitigated FVG, order block, and liquidity alignment'
+                            })
     
     # Factor 2: Entry near strong supply zones during downtrends
     if last_row['ema20'] < last_row['ema50']:  # Downtrend condition
         for _, zone in supply_demand_zones[supply_demand_zones['type'] == 'supply'].iterrows():
             if zone['bottom'] > current_price > zone['bottom'] * 0.98:  # Price just below supply zone
-                # Check if we have bearish patterns nearby
-                has_bearish_pattern = any(pattern['significance'] == 'bearish' for _, pattern in recent_patterns.iterrows())
-                
-                if has_bearish_pattern:
-                    entries.append({
-                        'type': 'short',
-                        'entry_price': current_price,
-                        'stop_loss': zone['top'] * 1.01,  # Stop just above supply zone
-                        'take_profit': current_price - (zone['top'] - current_price) * 2,  # 1:2 risk-reward
-                        'confidence': 'high',
-                        'reason': 'Price at supply zone with bearish confirmation'
-                    })
-    
-    # Factor 3: Liquidity hunts at swing highs/lows
-    for _, zone in liquidity_zones.iterrows():
-        if zone['type'] == 'liquidity_high' and current_price > zone['level'] * 1.005:  # Price just broke above liquidity high
-            # Check if this was a false breakout (price couldn't sustain the move)
-            recent_highs = df['high'].iloc[-5:]
-            if current_price < max(recent_highs) * 0.995:
-                entries.append({
-                    'type': 'short',
-                    'entry_price': current_price,
-                    'stop_loss': zone['level'] * 1.02,  # Stop above the swing high
-                    'take_profit': current_price - (zone['level'] * 1.02 - current_price) * 2,
-                    'confidence': 'medium',
-                    'reason': 'Failed breakout at liquidity high'
-                })
-        
-        if zone['type'] == 'liquidity_low' and current_price < zone['level'] * 0.995:  # Price just broke below liquidity low
-            # Check if this was a false breakout (price couldn't sustain the move)
-            recent_lows = df['low'].iloc[-5:]
-            if current_price > min(recent_lows) * 1.005:
-                entries.append({
-                    'type': 'long',
-                    'entry_price': current_price,
-                    'stop_loss': zone['level'] * 0.98,  # Stop below the swing low
-                    'take_profit': current_price + (current_price - zone['level'] * 0.98) * 2,
-                    'confidence': 'medium',
-                    'reason': 'Failed breakout at liquidity low'
-                })
+                # Check if required liquidity is taken out
+                if not required_liquidity.empty and all(current_price < liquidity['level'] for _, liquidity in required_liquidity.iterrows()):
+                    # Check if unmitigated FVG is present
+                    if not unmitigated_fvgs.empty and any(zone['bottom'] <= fvg['top'] <= zone['top'] for _, fvg in unmitigated_fvgs.iterrows()):
+                        # Check if unmitigated order block is present
+                        if not unmitigated_blocks.empty and any(zone['bottom'] <= block['high'] <= zone['top'] for _, block in unmitigated_blocks.iterrows()):
+                            entries.append({
+                                'type': 'short',
+                                'entry_price': current_price,
+                                'stop_loss': zone['top'] * 1.01,  # Stop just above supply zone
+                                'take_profit': current_price - (zone['top'] - current_price) * 2,  # 1:2 risk-reward
+                                'confidence': 'high',
+                                'reason': 'Price at supply zone with unmitigated FVG, order block, and liquidity alignment'
+                            })
     
     return pd.DataFrame(entries)
 
@@ -448,9 +552,10 @@ def calculate_smart_entry_points(df, liquidity_zones, supply_demand_zones, candl
 
 # ===== PLOT AND DATA VISUALIZATION =====
 def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks, 
-               candlestick_patterns, smart_entries, symbol):
+               candlestick_patterns, smart_entries, fair_value_gaps, symbol):
     """
-    Plot a clean chart with only the most significant zones and levels
+    Plot a clean chart with only the most significant zones and levels.
+    Highlight only the required liquidity zones, unmitigated FVGs, and order blocks.
     """
     # Identify market structure breaks and FVGs
     structure_breaks = identify_market_structure_breaks(df)
@@ -516,244 +621,143 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
     ax_main.plot(df['timestamp_mpl'], df['ema200'], color=colors['ma3'], 
                  linewidth=1.5, label='EMA 200', alpha=0.9)
     
-    # Plot entry points, stop-loss, and take-profit levels
+    # Plot entry points, stop-loss, and take-profit levels with prices
     if not smart_entries.empty:
         last_timestamp = df['timestamp_mpl'].iloc[-1]
         for _, entry in smart_entries.iterrows():
-            # Entry point line and label
-            ax_main.axhline(y=entry['entry_price'], color='yellow', linestyle='--', alpha=0.5)
-            ax_main.annotate(f"Entry: {entry['entry_price']:.8f}",
-                xy=(last_timestamp, entry['entry_price']),
-                xytext=(10, 0),
-                textcoords='offset points',
-                color='yellow',
-                fontweight='bold',
-                bbox=dict(facecolor='black', alpha=0.7))
-            
-            # Stop-loss line and label
-            ax_main.axhline(y=entry['stop_loss'], color='red', linestyle='--', alpha=0.5)
-            ax_main.annotate(f"SL: {entry['stop_loss']:.8f}",
-                xy=(last_timestamp, entry['stop_loss']),
-                xytext=(10, 0),
-                textcoords='offset points',
-                color='red',
-                fontweight='bold',
-                bbox=dict(facecolor='black', alpha=0.7))
-            
-            # Take-profit line and label
-            ax_main.axhline(y=entry['take_profit'], color='green', linestyle='--', alpha=0.5)
-            ax_main.annotate(f"TP: {entry['take_profit']:.8f}",
-                xy=(last_timestamp, entry['take_profit']),
-                xytext=(10, 0),
-                textcoords='offset points',
-                color='green',
-                fontweight='bold',
-                bbox=dict(facecolor='black', alpha=0.7))
+            # Entry point line and price
+            ax_main.axhline(y=entry['entry_price'], color='yellow', linestyle='--', alpha=0.8)
+            ax_main.text(last_timestamp, entry['entry_price'], 
+                        f" Entry @ {entry['entry_price']:.4f}", 
+                        color='yellow', fontweight='bold', va='bottom', ha='left',
+                        bbox=dict(facecolor='black', alpha=0.7, edgecolor='yellow'))
+
+            # Stop-loss line and price
+            ax_main.axhline(y=entry['stop_loss'], color='red', linestyle='--', alpha=0.8)
+            ax_main.text(last_timestamp, entry['stop_loss'], 
+                        f" SL @ {entry['stop_loss']:.4f}", 
+                        color='red', fontweight='bold', va='bottom', ha='left',
+                        bbox=dict(facecolor='black', alpha=0.7, edgecolor='red'))
+
+            # Take-profit line and price
+            ax_main.axhline(y=entry['take_profit'], color='green', linestyle='--', alpha=0.8)
+            ax_main.text(last_timestamp, entry['take_profit'], 
+                        f" TP @ {entry['take_profit']:.4f}", 
+                        color='green', fontweight='bold', va='bottom', ha='left',
+                        bbox=dict(facecolor='black', alpha=0.7, edgecolor='green'))
 
     # Initialize label position trackers
     right_labels = []
     left_labels = []
     
-    # Plot supply and demand zones with new labels
-    for _, zone in supply_demand_zones.iterrows():
+    # Filter valid supply and demand zones
+    valid_zones = supply_demand_zones[supply_demand_zones['strength'] >= 1.5]  # Adjust strength threshold as needed
+
+    # Plot supply and demand zones
+    for _, zone in valid_zones.iterrows():
         if zone['type'] == 'supply':
-            label = 'SZ'
             color = colors['supply']
+            label = 'Supply Zone'
         else:
-            label = 'DZ'
             color = colors['demand']
-            
-        # Plot zone lines
-        ax_main.plot([df['timestamp_mpl'].iloc[0], df['timestamp_mpl'].iloc[-1]], 
-                    [zone['top'], zone['top']], '--', color=color, alpha=0.6)
-        ax_main.plot([df['timestamp_mpl'].iloc[0], df['timestamp_mpl'].iloc[-1]], 
-                    [zone['bottom'], zone['bottom']], '--', color=color, alpha=0.6)
+            label = 'Demand Zone'
         
-        # Add label
-        ax_main.annotate(label,
-            xy=(df['timestamp_mpl'].iloc[-1], (zone['top'] + zone['bottom'])/2),
-            xytext=(10, 0),
-            textcoords='offset points',
-            fontsize=10,
-            color=color,
-            bbox=dict(facecolor=colors['label_bg'],
-                    edgecolor=color,
-                    alpha=0.9,
-                    boxstyle='round,pad=0.5'))
-    
-    # Plot liquidity zones with new labels
-    for _, zone in liquidity_zones.iterrows():
-        label = 'Liquidity'
+        # Plot zone as a filled rectangle
+        ax_main.fill_between(
+            [df['timestamp_mpl'].iloc[0], df['timestamp_mpl'].iloc[-1]],
+            zone['bottom'], zone['top'],
+            color=color, alpha=0.2, label=label if label not in ax_main.get_legend_handles_labels()[1] else ""
+        )
+
+    # Remove other unnecessary labels and lines
+    # Comment out or remove plotting for liquidity zones, order blocks, and other markers
+
+    # Filter required liquidity zones
+    required_liquidity = liquidity_zones[
+        (liquidity_zones['type'] == 'liquidity_high') & (liquidity_zones['level'] > df['close'].iloc[-1]) |
+        (liquidity_zones['type'] == 'liquidity_low') & (liquidity_zones['level'] < df['close'].iloc[-1])
+    ]
+
+    # Plot required liquidity zones with $ symbol on the left
+    for _, zone in required_liquidity.iterrows():
+        label = '$ Required Liquidity'  # Add $ symbol
         color = colors['liquidity']
         
-        # Calculate y position and adjust if too close to other labels
-        y_pos = zone['level']
-        while any(abs(y - y_pos) < label_spacing for y in left_labels):
-            y_pos += label_spacing
-        left_labels.append(y_pos)
-        
         # Plot zone lines
         ax_main.plot([df['timestamp_mpl'].iloc[0], df['timestamp_mpl'].iloc[-1]], 
-                    [zone['level'], zone['level']], '--', color=color, alpha=0.6)
+                     [zone['level'], zone['level']], '--', color=color, alpha=0.8)
         
-        # Add Liquidity label on the left side
-        ax_main.annotate(label,
-            xy=(df['timestamp_mpl'].iloc[0], y_pos),
-            xytext=(-40, 0),
-            textcoords='offset points',
-            fontsize=10,
-            color=color,
-            bbox=dict(facecolor=colors['label_bg'],
-                    edgecolor=color,
-                    alpha=0.9,
-                    boxstyle='round,pad=0.5'),
-            ha='right',
-            va='center')
-    
-    # Plot Fair Value Gaps
-    for _, fvg in fair_value_gaps.iterrows():
+        # Add label on the left side
+        ax_main.annotate(f"$ {zone['level']:.4f}",
+                         xy=(df['timestamp_mpl'].iloc[0], zone['level']),
+                         xytext=(-10, 0),
+                         textcoords='offset points',
+                         fontsize=10,
+                         color=color,
+                         bbox=dict(facecolor=colors['label_bg'],
+                                   edgecolor=color,
+                                   alpha=0.9,
+                                   boxstyle='round,pad=0.5'),
+                         ha='right',
+                         va='center')
+
+    # Plot unmitigated FVGs
+    for _, fvg in fair_value_gaps[fair_value_gaps['filled'] == False].iterrows():
         color = colors['fvg_bull'] if fvg['type'] == 'bullish' else colors['fvg_bear']
         
         # Plot FVG zone with gradient fill
         ax_main.fill_between([mdates.date2num(fvg['timestamp']), df['timestamp_mpl'].iloc[-1]], 
-                           [fvg['bottom'], fvg['bottom']], 
-                           [fvg['top'], fvg['top']], 
-                           color=color, alpha=0.1)
+                             [fvg['bottom'], fvg['bottom']], 
+                             [fvg['top'], fvg['top']], 
+                             color=color, alpha=0.1)
         
         # Add label with strength
         label = f"FVG ({fvg['strength']:.1f}%)"
         ax_main.annotate(label,
-            xy=(mdates.date2num(fvg['timestamp']), (fvg['top'] + fvg['bottom'])/2),
-            xytext=(10, 0),
-            textcoords='offset points',
-            fontsize=10,
-            color=color,
-            bbox=dict(facecolor=colors['label_bg'],
-                    edgecolor=color,
-                    alpha=0.9,
-                    boxstyle='round,pad=0.5'))
+                         xy=(mdates.date2num(fvg['timestamp']), (fvg['top'] + fvg['bottom']) / 2),
+                         xytext=(10, 0),
+                         textcoords='offset points',
+                         fontsize=10,
+                         color=color,
+                         bbox=dict(facecolor=colors['label_bg'],
+                                   edgecolor=color,
+                                   alpha=0.9,
+                                   boxstyle='round,pad=0.5'))
         
-        # Add entry marker if FVG is at a potential entry point
-        if abs(df['close'].iloc[-1] - fvg['bottom']) / df['close'].iloc[-1] <= 0.01:  # Within 1% of current price
-            ax_main.plot(df['timestamp_mpl'].iloc[-1], fvg['bottom'],
-                        marker='*', color=color, markersize=12,
-                        label='Potential Entry at FVG')
-    
-    # Plot unmitigated order blocks (most recent one of each type)
-    if not order_blocks.empty:
-        unmitigated = order_blocks[order_blocks['mitigated'] == False]
-        if not unmitigated.empty:
-            bullish_ob = unmitigated[unmitigated['type'] == 'bullish'].iloc[-1:] if 'bullish' in unmitigated['type'].values else pd.DataFrame()
-            bearish_ob = unmitigated[unmitigated['type'] == 'bearish'].iloc[-1:] if 'bearish' in unmitigated['type'].values else pd.DataFrame()
-            
-            for _, block in pd.concat([bullish_ob, bearish_ob]).iterrows():
-                color = colors['bar_up'] if block['type'] == 'bullish' else colors['bar_down']
-                
-                # Add label
-                y_pos = (block['high'] + block['low']) / 2
-                while any(abs(y - y_pos) < label_spacing for y in left_labels):
-                    y_pos += label_spacing
-                left_labels.append(y_pos)
-                
-                label = f"{'Bullish' if block['type'] == 'bullish' else 'Bearish'} Order Block"
-                ax_main.annotate(label, 
-                               xy=(df['timestamp_mpl'].iloc[0], y_pos),
-                               xytext=(-50, 0),
-                               textcoords='offset points',
-                               fontsize=10,
-                               color=color,
-                               bbox=dict(facecolor=colors['label_bg'],
-                                       edgecolor=color,
-                                       alpha=0.9,
-                                       boxstyle='round,pad=0.5'),
-                               arrowprops=dict(arrowstyle='->',
-                                             color=color,
-                                             alpha=0.8,
-                                             connectionstyle='arc3,rad=-0.2'),
-                               va='center',
-                               ha='right')
-    
-    # Plot high-confidence smart entries with new labels
-    for _, entry in smart_entries.iterrows():
-        # Entry point
-        ax_main.plot(df['timestamp_mpl'].iloc[-1], entry['entry_price'], 
-                    marker='o', color=colors['bar_up'] if entry['type'] == 'long' else colors['bar_down'])
-        ax_main.annotate('EP',
-            xy=(df['timestamp_mpl'].iloc[-1], entry['entry_price']),
-            xytext=(10, 0),
-            textcoords='offset points',
-            fontsize=10,
-            color=colors['text'],
-            bbox=dict(facecolor=colors['label_bg'],
-                    edgecolor=colors['text'],
-                    alpha=0.9,
-                    boxstyle='round,pad=0.5'))
+        # Add an arrow pointing to the FVG
+        ax_main.annotate('', 
+                         xy=(mdates.date2num(fvg['timestamp']), fvg['bottom']),
+                         xytext=(mdates.date2num(fvg['timestamp']), fvg['top']),
+                         arrowprops=dict(arrowstyle='->', color=color, lw=1.5, alpha=0.8))
+
+    # Plot unmitigated order blocks
+    for _, block in order_blocks[order_blocks['mitigated'] == False].iterrows():
+        color = colors['bar_up'] if block['type'] == 'bullish' else colors['bar_down']
         
-        # Stop Loss
-        ax_main.plot(df['timestamp_mpl'].iloc[-1], entry['stop_loss'], 
-                    marker='s', color=colors['bar_down'])
-        ax_main.annotate('STL',
-            xy=(df['timestamp_mpl'].iloc[-1], entry['stop_loss']),
-            xytext=(10, 0),
-            textcoords='offset points',
-            fontsize=10,
-            color=colors['bar_down'],
-            bbox=dict(facecolor=colors['label_bg'],
-                    edgecolor=colors['bar_down'],
-                    alpha=0.9,
-                    boxstyle='round,pad=0.5'))
-        
-        # Take Profit
-        ax_main.plot(df['timestamp_mpl'].iloc[-1], entry['take_profit'], 
-                    marker='s', color=colors['bar_up'])
-        ax_main.annotate('TP',
-            xy=(df['timestamp_mpl'].iloc[-1], entry['take_profit']),
-            xytext=(10, 0),
-            textcoords='offset points',
-            fontsize=10,
-            color=colors['bar_up'],
-            bbox=dict(facecolor=colors['label_bg'],
-                    edgecolor=colors['bar_up'],
-                    alpha=0.9,
-                    boxstyle='round,pad=0.5'))
-    
-    # Plot market structure breaks and changes of character
-    for _, break_point in structure_breaks.iterrows():
-        if break_point['valid']:
-            color = colors['fvg_bull'] if 'Bullish' in break_point['type'] else colors['fvg_bear']
-            
-            # Add label with arrow
-            ax_main.annotate(
-                break_point['type'],
-                xy=(mdates.date2num(break_point['timestamp']), break_point['price']),
-                xytext=(-50 if 'Bearish' in break_point['type'] else 50, 
-                       20 if 'Bullish' in break_point['type'] else -20),
-                textcoords='offset points',
-                fontsize=10,
-                color=color,
-                bbox=dict(facecolor=colors['label_bg'],
-                        edgecolor=color,
-                        alpha=0.9,
-                        boxstyle='round,pad=0.5'),
-                arrowprops=dict(arrowstyle='->',
-                            color=color,
-                            alpha=0.8,
-                            connectionstyle='arc3,rad=0.2'),
-                va='center',
-                ha='center')
-            
-            # Add marker at the break point
-            ax_main.plot(mdates.date2num(break_point['timestamp']), 
-                        break_point['price'],
-                        marker='o' if 'BMS' in break_point['type'] else 's',
-                        color=color,
-                        markersize=8,
-                        alpha=0.8)
-    
+        # Add label
+        y_pos = (block['high'] + block['low']) / 2
+        label = f"{'Bullish' if block['type'] == 'bullish' else 'Bearish'} Order Block"
+        ax_main.annotate(label, 
+                         xy=(df['timestamp_mpl'].iloc[0], y_pos),
+                         xytext=(-50, 0),
+                         textcoords='offset points',
+                         fontsize=10,
+                         color=color,
+                         bbox=dict(facecolor=colors['label_bg'],
+                                   edgecolor=color,
+                                   alpha=0.9,
+                                   boxstyle='round,pad=0.5'),
+                         arrowprops=dict(arrowstyle='->',
+                                         color=color,
+                                         alpha=0.8,
+                                         connectionstyle='arc3,rad=-0.2'),
+                         va='center',
+                         ha='right')
+
     # Mark swing highs and lows
     window = 10
     swing_labels = []  # Track label positions for spacing
-    
+
     for i in range(window, len(df) - window):
         # Swing high
         if all(df['high'].iloc[i] > df['high'].iloc[j] for j in range(i-window, i+window+1) if j != i):
@@ -764,21 +768,21 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
             swing_labels.append(y_pos)
             
             ax_main.annotate('Swing High', 
-                xy=(df['timestamp_mpl'].iloc[i], df['high'].iloc[i]),
-                xytext=(-30, 20),
-                textcoords='offset points',
-                fontsize=10,
-                color=colors['liquidity'],
-                bbox=dict(facecolor=colors['label_bg'],
-                        edgecolor=colors['liquidity'],
-                        alpha=0.9,
-                        boxstyle='round,pad=0.5'),
-                arrowprops=dict(arrowstyle='->',
-                            color=colors['liquidity'],
-                            alpha=0.8,
-                            connectionstyle='arc3,rad=-0.2'),
-                va='center',
-                ha='right')
+                             xy=(df['timestamp_mpl'].iloc[i], df['high'].iloc[i]),
+                             xytext=(-30, 20),
+                             textcoords='offset points',
+                             fontsize=10,
+                             color=colors['liquidity'],
+                             bbox=dict(facecolor=colors['label_bg'],
+                                       edgecolor=colors['liquidity'],
+                                       alpha=0.9,
+                                       boxstyle='round,pad=0.5'),
+                             arrowprops=dict(arrowstyle='->',
+                                             color=colors['liquidity'],
+                                             alpha=0.8,
+                                             connectionstyle='arc3,rad=-0.2'),
+                             va='center',
+                             ha='right')
         
         # Swing low
         if all(df['low'].iloc[i] < df['low'].iloc[j] for j in range(i-window, i+window+1) if j != i):
@@ -789,22 +793,22 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
             swing_labels.append(y_pos)
             
             ax_main.annotate('Swing Low', 
-                xy=(df['timestamp_mpl'].iloc[i], df['low'].iloc[i]),
-                xytext=(-30, -20),
-                textcoords='offset points',
-                fontsize=10,
-                color=colors['liquidity'],
-                bbox=dict(facecolor=colors['label_bg'],
-                        edgecolor=colors['liquidity'],
-                        alpha=0.9,
-                        boxstyle='round,pad=0.5'),
-                arrowprops=dict(arrowstyle='->',
-                            color=colors['liquidity'],
-                            alpha=0.8,
-                            connectionstyle='arc3,rad=0.2'),
-                va='center',
-                ha='right')
-    
+                             xy=(df['timestamp_mpl'].iloc[i], df['low'].iloc[i]),
+                             xytext=(-30, -20),
+                             textcoords='offset points',
+                             fontsize=10,
+                             color=colors['liquidity'],
+                             bbox=dict(facecolor=colors['label_bg'],
+                                       edgecolor=colors['liquidity'],
+                                       alpha=0.9,
+                                       boxstyle='round,pad=0.5'),
+                             arrowprops=dict(arrowstyle='->',
+                                             color=colors['liquidity'],
+                                             alpha=0.8,
+                                             connectionstyle='arc3,rad=0.2'),
+                             va='center',
+                             ha='right')
+
     # Customize grid and spines
     ax_main.grid(True, color=colors['grid'], alpha=0.3, linestyle='-', linewidth=1)
     ax_main.spines['top'].set_visible(False)
@@ -865,9 +869,10 @@ def analyze_market(symbol, chart_timeframe='4h', entry_timeframe='15m'):
     supply_demand_zones = identify_supply_demand_zones(df_entry)
     order_blocks = identify_order_blocks(df_entry)
     candlestick_patterns = identify_candlestick_patterns(df_entry)
+    fair_value_gaps = identify_fair_value_gaps(df_entry)
     
     # Calculate smart entry points using 15m data
-    smart_entries = calculate_smart_entry_points(df_entry, liquidity_zones, supply_demand_zones, candlestick_patterns)
+    smart_entries = calculate_smart_entry_points(df_entry, liquidity_zones, supply_demand_zones, candlestick_patterns, fair_value_gaps, order_blocks)
     
     # Generate trading signals using 15m data but considering 4h trend
     signals = generate_trading_signals(df_entry, liquidity_zones, supply_demand_zones, 
@@ -892,7 +897,7 @@ def analyze_market(symbol, chart_timeframe='4h', entry_timeframe='15m'):
     
     # Plot using 4h data but mark entry points from 15m analysis
     plot_chart(df_chart, liquidity_zones, supply_demand_zones, order_blocks, 
-                  candlestick_patterns, smart_entries, symbol)
+                  candlestick_patterns, smart_entries, fair_value_gaps, symbol)
     
     return {
         'symbol': symbol,
@@ -1414,8 +1419,9 @@ def main():
     print("Advanced Smart Money Trading Bot By LitoProgrammer")
     print("=" * 50)
     
-    # Define symbols to analyze
-    symbols = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT','SOL/USDT', 'ADA/USDT']
+    # Define symbols to analyze (now including forex and commodities)
+    crypto_symbols = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'SOL/USDT', 'ADA/USDT']
+    forex_symbols = ['XAUUSD', 'GBPJPY', 'USDJPY', 'USOIL']
     
     # Define timeframes
     chart_timeframe = '1h'    # Main chart display timeframe (changed to 1h)
@@ -1424,7 +1430,7 @@ def main():
     all_signals = []
     
     # Run analysis with specified timeframes
-    for symbol in symbols:
+    for symbol in crypto_symbols:
         try:
             result = analyze_market(symbol, chart_timeframe=chart_timeframe, entry_timeframe=entry_timeframe)
             if result is not None and 'signals' in result and not result['signals'].empty:
@@ -1433,7 +1439,7 @@ def main():
             print(f"Error analyzing {symbol}: {e}")
     
     # Run multi-timeframe analysis for confluence signals
-    for symbol in symbols:
+    for symbol in crypto_symbols:
         try:
             mtf_signals = analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h', '15m'])
             if not mtf_signals.empty:
@@ -1442,6 +1448,27 @@ def main():
         except Exception as e:
             print(f"Error in multi-timeframe analysis for {symbol}: {e}")
     
+    # Analyze forex pairs
+    for symbol in forex_symbols:
+        try:
+            # Use forex-specific data fetching
+            df_chart = fetch_forex_data(symbol, chart_timeframe)
+            df_entry = fetch_forex_data(symbol, entry_timeframe)
+            
+            if df_chart is not None and df_entry is not None:
+                result = analyze_market(symbol, chart_timeframe=chart_timeframe, entry_timeframe=entry_timeframe)
+                if result is not None and 'signals' in result and not result['signals'].empty:
+                    all_signals.append(result['signals'])
+                    
+                # Run multi-timeframe analysis
+                mtf_signals = analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h', '15m'])
+                if not mtf_signals.empty:
+                    all_signals.append(mtf_signals)
+                    print(f"Found multi-timeframe confluence signal for {symbol}")
+                    
+        except Exception as e:
+            print(f"Error analyzing forex pair {symbol}: {e}")
+
     # Combine all signals
     if all_signals:
         combined_signals = pd.concat(all_signals)

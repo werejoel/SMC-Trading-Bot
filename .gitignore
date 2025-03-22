@@ -1,1 +1,6 @@
 .qodo
+config.py
+__pycache__/
+*.pyc
+*.log
+trade_log.csv
