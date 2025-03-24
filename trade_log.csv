@@ -77,3 +77,76 @@ timestamp,symbol,signal_type,entry_price,stop_loss,take_profit,confidence,reason
 2025-03-22 00:10:02,ETH/USDT,long,1988.16,1934.3338,2095.8124000000007,high,Price at unmitigated bullish order block in bullish trend,2.0
 2025-03-22 00:11:16,XRP/USDT,long,2.4047,2.34122,2.5316600000000005,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
 2025-03-22 00:24:16,XRP/USDT,long,2.4033,2.34122,2.527460000000001,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+2025-03-22 02:58:33,BTC/USDT,long,84395.59,82136.9458,88912.87839999999,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 02:58:33,BTC/USDT,long,84395.59,82490.4318,88205.90639999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 02:58:33,BTC/USDT,long,84395.59,82118.28659999999,88950.1968,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+2025-03-22 02:58:35,ETH/USDT,long,1995.26,1926.3566,2133.0668,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 02:58:35,ETH/USDT,long,1995.26,1934.3338,2117.1124,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 02:58:35,ETH/USDT,long,1995.26,1947.3874,2091.0052,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 02:58:35,ETH/USDT,long,1995.26,1919.4966,2146.7868,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+2025-03-22 03:06:28,BTC/USDT,long,84378.22,82136.9458,88860.7684,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:06:28,BTC/USDT,long,84378.22,82490.4318,88153.79639999999,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:08:38,ADA/USDT,short,0.7125,0.7422540000000001,0.6529919999999999,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
+2025-03-22 03:09:27,BTC/USDT,long,84400.67,82136.9458,88928.11839999999,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:09:27,BTC/USDT,long,84400.67,82490.4318,88221.14639999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:09:36,ETH/USDT,long,1995.4,1926.3566,2133.4868,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:09:36,ETH/USDT,long,1995.4,1934.3338,2117.5324000000005,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:09:36,ETH/USDT,long,1995.4,1947.3874,2091.4252,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:29:31,BTC/USDT,long,84380.01,82136.9458,88866.13839999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:29:31,BTC/USDT,long,84380.01,82490.4318,88159.16639999997,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:30:27,ETH/USDT,long,1994.41,1926.3566,2130.5168000000003,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:30:27,ETH/USDT,long,1994.41,1934.3338,2114.5624000000007,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:30:27,ETH/USDT,long,1994.41,1947.3874,2088.4552000000003,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:31:01,XRP/USDT,short,2.4016,2.523174,2.1584520000000005,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+2025-03-22 03:31:03,SOL/USDT,long,130.99,125.4204,142.12920000000005,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:31:03,SOL/USDT,long,130.99,126.2926,140.3848,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:33:57,BTC/USDT,long,84360.0,82136.9458,88806.1084,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:33:57,BTC/USDT,long,84360.0,82490.4318,88099.13639999999,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:34:17,ETH/USDT,long,1995.49,1926.3566,2133.7568,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:34:17,ETH/USDT,long,1995.49,1934.3338,2117.8024000000005,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:34:17,ETH/USDT,long,1995.49,1947.3874,2091.6952,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 03:34:35,SOL/USDT,long,131.06,126.2926,140.5948,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 13:40:23,BTC/USDT,long,84156.44,82136.9458,88195.4284,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 13:45:16,ETH/USDT,long,1999.64,1926.3566,2146.2068,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 13:45:16,ETH/USDT,long,1999.64,1934.3338,2130.2524000000003,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 13:48:33,XRP/USDT,long,2.3786,2.319464,2.496872,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 13:58:10,BTC/USDT,long,83989.13,82136.9458,87693.49840000001,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 14:07:38,BTC/USDT,long,83934.08,82136.9458,87528.3484,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 14:07:46,ETH/USDT,long,1992.63,1926.3566,2125.1768,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 14:07:46,ETH/USDT,long,1992.63,1934.3338,2109.222400000001,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 14:08:02,SOL/USDT,short,129.21,132.8754,121.8792,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-22 14:27:17,BTC/USDT,long,84024.58,82136.9458,87799.8484,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 14:27:31,ETH/USDT,long,1990.06,1926.3566,2117.4668,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-22 14:27:31,ETH/USDT,long,1990.06,1934.3338,2101.5124,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:37:31,BTC/USDT,long,88182.19,85018.038,94510.494,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:37:31,BTC/USDT,long,88182.19,85383.2056,93780.1588,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:37:31,BTC/USDT,long,88182.19,85395.82800000001,93754.914,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:42:29,SOL/USDT,long,142.36,136.8864,153.30720000000002,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:42:29,SOL/USDT,long,142.36,138.3662,150.34760000000006,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:44:01,ADA/USDT,long,0.7377,0.707168,0.798764,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:44:01,ADA/USDT,long,0.7377,0.694036,0.8250280000000001,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+2025-03-24 12:44:34,BTC/USDT,long,88040.52,85018.038,94085.484,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:44:34,BTC/USDT,long,88040.52,85383.2056,93355.1488,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:44:34,BTC/USDT,long,88040.52,85395.82800000001,93329.904,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:45:00,SOL/USDT,long,142.42,136.8864,153.48719999999994,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:45:00,SOL/USDT,long,142.42,138.3662,150.52759999999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:51:17,BTC/USDT,long,88197.64,85018.038,94556.844,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:51:17,BTC/USDT,long,88197.64,85383.2056,93826.5088,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:51:17,BTC/USDT,long,88197.64,85395.82800000001,93801.26399999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:52:10,SOL/USDT,long,142.43,136.8864,153.5172,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:52:10,SOL/USDT,long,142.43,138.3662,150.55760000000004,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:52:56,BTC/USDT,long,88131.39,85018.038,94358.094,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:52:56,BTC/USDT,long,88131.39,85383.2056,93627.7588,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:52:56,BTC/USDT,long,88131.39,85395.82800000001,93602.51399999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:57:25,BTC/USDT,long,88204.01,85018.038,94575.95399999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:57:25,BTC/USDT,long,88204.01,85383.2056,93845.61879999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 12:57:25,BTC/USDT,long,88204.01,85395.82800000001,93820.37399999997,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:02:36,BTC/USDT,long,88218.84,85018.038,94620.444,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:02:36,BTC/USDT,long,88218.84,85383.2056,93890.1088,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:02:36,BTC/USDT,long,88218.84,85395.82800000001,93864.86399999996,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:08:18,SOL/USDT,long,142.43,136.8864,153.5172,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:08:18,SOL/USDT,long,142.43,138.3662,150.55760000000004,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:20:47,XRP/USDT,long,2.4736,2.368464,2.683872,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:21:19,SOL/USDT,long,142.92,136.8864,154.98719999999994,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:21:19,SOL/USDT,long,142.92,138.3662,152.02759999999998,high,Price at unmitigated bullish order block in bullish trend,2.0
+2025-03-24 13:21:19,SOL/USDT,long,142.92,132.25099999999998,164.258,medium,Bullish bullish_engulfing pattern at support in bullish trend,2.0

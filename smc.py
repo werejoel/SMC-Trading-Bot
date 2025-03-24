@@ -17,18 +17,50 @@ ALPHA_VANTAGE_API_KEY = API_KEYS['alphavantage']
 OANDA_API_KEY = API_KEYS['oanda']
 MT5_TERMINAL_PATH = MT5_CONFIG['path']
 
+
+
 # Initialize exchange (using ccxt)
 def initialize_exchange(exchange_id='binance', api_key=None, secret=None):
-    exchange_class = getattr(ccxt, exchange_id)
-    exchange = exchange_class({
-        'apiKey': api_key,
-        'secret': secret,
-        'enableRateLimit': True,
-    })
-    return exchange
+    try:
+        exchange_class = getattr(ccxt, exchange_id)
+        exchange = exchange_class({
+            'apiKey': api_key,
+            'secret': secret,
+            'enableRateLimit': True,
+            'options': {
+                'defaultType': 'spot',  # Set to 'spot' for spot trading
+                'adjustForTimeDifference': True,
+                'recvWindow': 60000,  # Increased timeout
+            },
+            'timeout': 30000,  # 30 seconds timeout
+        })
 
+        # Load markets to ensure proper symbol mapping
+        exchange.load_markets()
+
+        # Set specific settings for BTC analysis
+        exchange.options['warnOnFetchOHLCVLimitArgument'] = False
+        exchange.options['fetchOHLCVWarning'] = False
+        
+        # Test connection with a simple BTC ticker request
+        try:
+            exchange.fetch_ticker('BTC/USDT')
+        except Exception as e:
+            print(f"Error testing BTC ticker: {e}")
+            return None
+            
+        return exchange
+    except Exception as e:
+        print(f"Error initializing exchange: {e}")
+        return None
+
+# Initialize with better error handling
 exchange = initialize_exchange()
+if exchange is None:
+    print("Warning: Exchange initialization failed. Using backup data source.")
+   
 
+   # Initialize MT5 connection
 def initialize_forex_connection():
     """Initialize connection for forex data"""
     try:
@@ -215,6 +247,7 @@ def add_technical_indicators(df):
     df['atr'] = ta.volatility.average_true_range(df['high'], df['low'], df['close'])
     
     return df
+
 
 
 # ===== LIQUIDITY DETECTION =====
@@ -576,8 +609,8 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
         'bar_up': '#089981',       # Forest green for bullish
         'bar_down': '#f23645',     # Crimson red for bearish
         'ma1': '#2962ff',          # Royal blue for EMA 20
-        'ma2': '#9c27b0',         # Purple for EMA 50
-        'ma3': '#ff6d00',         # Orange for EMA 200
+        'ma2': '#9c27b0',          # Purple for EMA 50
+        'ma3': '#ff6d00',          # Orange for EMA 200
         'text': '#131722',         # Dark gray text
         'liquidity': '#1E88E5',    # Main blue for liquidity zones
         'supply': '#FF5252',       # Red for supply zones
@@ -624,27 +657,67 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
     # Plot entry points, stop-loss, and take-profit levels with prices
     if not smart_entries.empty:
         last_timestamp = df['timestamp_mpl'].iloc[-1]
+        timestamp_width = last_timestamp - df['timestamp_mpl'].iloc[-2]
+        
         for _, entry in smart_entries.iterrows():
             # Entry point line and price
-            ax_main.axhline(y=entry['entry_price'], color='yellow', linestyle='--', alpha=0.8)
-            ax_main.text(last_timestamp, entry['entry_price'], 
+            ax_main.axhline(y=entry['entry_price'], color='yellow', linestyle='--', linewidth=2, alpha=0.8)
+            ax_main.plot([last_timestamp - timestamp_width, last_timestamp + timestamp_width], 
+                        [entry['entry_price'], entry['entry_price']], 
+                        color='yellow', linewidth=2, alpha=1)
+            ax_main.text(last_timestamp + timestamp_width*0.5, entry['entry_price'], 
                         f" Entry @ {entry['entry_price']:.4f}", 
-                        color='yellow', fontweight='bold', va='bottom', ha='left',
-                        bbox=dict(facecolor='black', alpha=0.7, edgecolor='yellow'))
+                        color='yellow', fontweight='bold', va='center', ha='left',
+                        bbox=dict(facecolor='black', alpha=0.8, edgecolor='yellow', pad=3))
 
             # Stop-loss line and price
-            ax_main.axhline(y=entry['stop_loss'], color='red', linestyle='--', alpha=0.8)
-            ax_main.text(last_timestamp, entry['stop_loss'], 
+            ax_main.axhline(y=entry['stop_loss'], color='red', linestyle='--', linewidth=2, alpha=0.8)
+            ax_main.plot([last_timestamp - timestamp_width, last_timestamp + timestamp_width], 
+                        [entry['stop_loss'], entry['stop_loss']], 
+                        color='red', linewidth=2, alpha=1)
+            ax_main.text(last_timestamp + timestamp_width*0.5, entry['stop_loss'], 
                         f" SL @ {entry['stop_loss']:.4f}", 
-                        color='red', fontweight='bold', va='bottom', ha='left',
-                        bbox=dict(facecolor='black', alpha=0.7, edgecolor='red'))
+                        color='red', fontweight='bold', va='center', ha='left',
+                        bbox=dict(facecolor='black', alpha=0.8, edgecolor='red', pad=3))
 
             # Take-profit line and price
-            ax_main.axhline(y=entry['take_profit'], color='green', linestyle='--', alpha=0.8)
-            ax_main.text(last_timestamp, entry['take_profit'], 
+            ax_main.axhline(y=entry['take_profit'], color='green', linestyle='--', linewidth=2, alpha=0.8)
+            ax_main.plot([last_timestamp - timestamp_width, last_timestamp + timestamp_width], 
+                        [entry['take_profit'], entry['take_profit']], 
+                        color='green', linewidth=2, alpha=1)
+            ax_main.text(last_timestamp + timestamp_width*0.5, entry['take_profit'], 
                         f" TP @ {entry['take_profit']:.4f}", 
-                        color='green', fontweight='bold', va='bottom', ha='left',
-                        bbox=dict(facecolor='black', alpha=0.7, edgecolor='green'))
+                        color='green', fontweight='bold', va='center', ha='left',
+                        bbox=dict(facecolor='black', alpha=0.8, edgecolor='green', pad=3))
+
+            # Add connecting lines with arrows
+            ax_main.annotate('', xy=(last_timestamp, entry['stop_loss']), 
+                           xytext=(last_timestamp, entry['entry_price']),
+                           arrowprops=dict(arrowstyle='<->', color='yellow', lw=1.5, alpha=0.6))
+            ax_main.annotate('', xy=(last_timestamp, entry['entry_price']), 
+                           xytext=(last_timestamp, entry['take_profit']),
+                           arrowprops=dict(arrowstyle='<->', color='yellow', lw=1.5, alpha=0.6))
+
+            # Add Risk:Reward ratio and trade direction
+            risk = abs(entry['entry_price'] - entry['stop_loss'])
+            reward = abs(entry['take_profit'] - entry['entry_price'])
+            rr_ratio = reward / risk
+            mid_price = entry['entry_price'] + (entry['take_profit'] - entry['entry_price']) / 2
+            
+            # Display R:R ratio
+            ax_main.text(last_timestamp + timestamp_width*0.5, mid_price,
+                        f"R:R = 1:{rr_ratio:.1f}",
+                        color='white', fontweight='bold', ha='left', va='center',
+                        bbox=dict(facecolor='black', alpha=0.8, edgecolor='yellow', pad=3))
+
+            # Display trade direction
+            direction_color = 'yellow' if entry['type'] == 'long' else 'red'
+            ax_main.text(last_timestamp + timestamp_width*0.5, 
+                        entry['entry_price'] - (price_range * 0.02),
+                        f"{entry['type'].upper()} TRADE",
+                        color=direction_color, fontweight='bold', ha='left', va='top',
+                        bbox=dict(facecolor='black', alpha=0.8, 
+                                edgecolor=direction_color, pad=3))
 
     # Initialize label position trackers
     right_labels = []
@@ -878,6 +951,19 @@ def analyze_market(symbol, chart_timeframe='4h', entry_timeframe='15m'):
     signals = generate_trading_signals(df_entry, liquidity_zones, supply_demand_zones, 
                                     order_blocks, candlestick_patterns, smart_entries, trend)
     
+    # Convert signals to smart_entries format for plotting
+    if not signals.empty:
+        smart_entries = pd.DataFrame([{
+            'type': signal['signal_type'],
+            'entry_price': signal['entry_price'],
+            'stop_loss': signal['stop_loss'],
+            'take_profit': signal['take_profit']
+        } for _, signal in signals.iterrows()])
+    
+    # Plot using 4h data but mark entry points from signals
+    plot_chart(df_chart, liquidity_zones, supply_demand_zones, order_blocks, 
+              candlestick_patterns, smart_entries, fair_value_gaps, symbol)
+    
     # Log any potential trade setups
     if not signals.empty:
         log_trades(symbol, signals)
@@ -894,10 +980,6 @@ def analyze_market(symbol, chart_timeframe='4h', entry_timeframe='15m'):
     print(f"Order blocks found: {len(order_blocks)}")
     print(f"Candlestick patterns found: {len(candlestick_patterns)}")
     print(f"Smart entries found: {len(smart_entries)}")
-    
-    # Plot using 4h data but mark entry points from 15m analysis
-    plot_chart(df_chart, liquidity_zones, supply_demand_zones, order_blocks, 
-                  candlestick_patterns, smart_entries, fair_value_gaps, symbol)
     
     return {
         'symbol': symbol,
@@ -937,7 +1019,7 @@ def generate_trading_signals(df, liquidity_zones, supply_demand_zones,
                 'confidence': confidence,
                 'reason': entry['reason'],
                 'risk_reward_ratio': abs(entry['take_profit'] - entry['entry_price']) / abs(entry['entry_price'] - entry['stop_loss'])
-            })
+            })   
         
         return pd.DataFrame(signals)
     
@@ -1490,6 +1572,7 @@ def main():
             print(f"Reason: {signal['reason']}")
             print(f"Risk/Reward: 1:{signal['risk_reward_ratio']}")
             print("-" * 30)
+    
 
 if __name__ == "__main__":
     main()
