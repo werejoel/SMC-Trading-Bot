@@ -97,34 +97,49 @@ def fetch_forex_data(symbol, timeframe, limit=200):
     Now includes Finnhub as primary source for forex
     """
     try:
-        # Map timeframe to Finnhub format
+        # Map timeframe to Finnhub format (fix string/int issue)
         tf_map = {
-            '1m': '1',
-            '5m': '5',
-            '15m': '15',
-            '30m': '30',
-            '1h': '60',
-            '4h': '240',
-            '1d': 'D'
+            '1m': 1,
+            '5m': 5,
+            '15m': 15,
+            '30m': 30,
+            '1h': 60,
+            '4h': 240,
+            '1d': 'D',
+            '1w': 'W',
+            '1M': 'M'
         }
         
-        # Format symbol for Finnhub
-        if 'XAU' in symbol:
-            finnhub_symbol = 'OANDA:XAU_USD'
-        elif 'USD' in symbol:
-            finnhub_symbol = f'OANDA:{symbol[:3]}_{symbol[3:]}'
-        else:
-            finnhub_symbol = f'OANDA:{symbol.replace("/", "_")}'
+        # Format symbol for Finnhub with proper mapping
+        symbol_map = {
+            'XAUUSD': 'OANDA:XAU_USD',
+            'USOIL': 'OANDA:OIL_USD',
+            'GBPJPY': 'OANDA:GBP_JPY',
+            'USDJPY': 'OANDA:USD_JPY',
+        }
+        
+        finnhub_symbol = symbol_map.get(symbol.replace('/', ''))
+        if not finnhub_symbol:
+            if 'USD' in symbol:
+                finnhub_symbol = f'OANDA:{symbol[:3]}_{symbol[3:]}'
+            else:
+                finnhub_symbol = f'OANDA:{symbol.replace("/", "_")}'
+            
+        # Get numeric timeframe value
+        tf_value = tf_map.get(timeframe)
+        if tf_value is None:
+            print(f"Unsupported timeframe {timeframe}, using 1h")
+            tf_value = 60  # Default to 1h
             
         # Calculate timestamps
         end_time = int(time.time())
-        start_time = end_time - (limit * tf_map[timeframe] * 60)  # Convert to seconds
+        start_time = end_time - (limit * (tf_value if isinstance(tf_value, int) else 1440) * 60)
         
         # Make API request
         url = f'https://finnhub.io/api/v1/forex/candle'
         params = {
             'symbol': finnhub_symbol,
-            'resolution': tf_map[timeframe],
+            'resolution': str(tf_value),  # Convert to string as required by API
             'from': start_time,
             'to': end_time,
             'token': FINNHUB_API_KEY
@@ -145,121 +160,68 @@ def fetch_forex_data(symbol, timeframe, limit=200):
             df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
             return df
             
-        else:
-            print(f"Finnhub data fetch failed for {symbol}, trying MT5...")
-            
     except Exception as e:
         print(f"Finnhub error: {e}")
 
-    # Try MetaTrader5 first (primary source for forex)
-    mt5 = initialize_forex_connection()
-    if mt5:
-        try:
-            # Format symbol for MT5
-            mt5_symbol = symbol.replace('/', '')
-            if 'XAU' in symbol:
-                mt5_symbol = 'XAUUSD'
-            elif 'OIL' in symbol:
-                mt5_symbol = 'USOIL'
-            
-            # Ensure symbol exists in MT5
-            symbol_info = mt5.symbol_info(mt5_symbol)
-            if symbol_info is None:
-                print(f"Symbol {mt5_symbol} not found in MT5")
-                raise LookupError(f"Symbol {mt5_symbol} not found in MT5")
-            
-            # Fetch data with retry mechanism
-            for attempt in range(3):
-                try:
-                    rates = mt5.copy_rates_from_pos(mt5_symbol, tf_map[timeframe], 0, limit)
-                    if rates is not None and len(rates) > 0:
-                        df = pd.DataFrame(rates)
-                        df['timestamp'] = pd.to_datetime(df['time'], unit='s')
-                        df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-                        df = df.rename(columns={
-                            'open': 'open',
-                            'high': 'high',
-                            'low': 'low',
-                            'close': 'close',
-                            'tick_volume': 'volume',
-                            'spread': 'spread',
-                            'real_volume': 'real_volume'
-                        })
-                        return df
-                except Exception as e:
-                    print(f"MT5 attempt {attempt + 1} failed: {e}")
-                    time.sleep(1)
-            
-            print("All MT5 attempts failed, trying alternative source")
-            raise Exception("MT5 data fetch failed")
-            
-        except Exception as e:
-            print(f"MT5 error: {e}")
-
-    # Try Alpha Vantage as backup for forex pairs
-    if any(pair in symbol for pair in ['USD', 'EUR', 'GBP', 'JPY', 'XAU']):
-        try:
-            # Format symbol for Alpha Vantage
-            base = symbol[:3]
-            quote = symbol[3:]
-            
-            # Adjust timeframe for Alpha Vantage limitations
-            if timeframe not in ['1d', '1h']:
-                print(f"Adjusting timeframe from {timeframe} to 1h for Alpha Vantage")
-                timeframe = '1h'
-            
-            # Select appropriate API endpoint
-            if timeframe == '1d':
-                endpoint = 'FX_DAILY'
-            else:
-                endpoint = 'FX_INTRADAY'
-            
-            url = f"https://www.alphavantage.co/query?function={endpoint}&from_symbol={base}&to_symbol={quote}&interval={timeframe}&apikey={ALPHA_VANTAGE_API_KEY}"
-            response = requests.get(url)
-            data = response.json()
-            
-            # Check for error messages
-            if "Error Message" in data:
-                raise Exception(f"Alpha Vantage error: {data['Error Message']}")
-            
-            # Extract time series data
-            time_series_key = f"Time Series FX ({timeframe})" if timeframe != '1d' else "Time Series FX (Daily)"
-            
-            if time_series_key in data:
-                df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
-                df = df.rename(columns={
-                    '1. open': 'open',
-                    '2. high': 'high',
-                    '3. low': 'low',
-                    '4. close': 'close'
-                })
-                df = df.astype(float)
-                df.index = pd.to_datetime(df.index)
-                df = df.sort_index()
-                df['volume'] = 0
-                df = df.reset_index()
-                df = df.rename(columns={'index': 'timestamp'})
-                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-                return df.tail(limit)
-            
-        except Exception as e:
-            print(f"Alpha Vantage data fetch error: {e}")
-
-    # Last resort: Try CCXT for available symbols
+    print("Finnhub fetch failed, trying Alpha Vantage...")
+    
     try:
-        # Map forex symbols to available CCXT markets
-        ccxt_symbols = {
-            'XAUUSD': 'GOLD/USD',
-            'USOIL': 'USOIL/USD',
-            'BTCUSD': 'BTC/USD'
-        }
+        # Format symbol for Alpha Vantage
+        base = symbol[:3]
+        quote = symbol[3:].replace('USD', '') or 'USD'  # Handle special cases
         
-        ccxt_symbol = ccxt_symbols.get(symbol.replace('/', ''), symbol)
-        return fetch_data(ccxt_symbol, timeframe, limit, source='ccxt')
+        # Special cases for commodities
+        if 'XAU' in symbol:
+            base = 'XAU'
+            quote = 'USD'
+        elif 'USOIL' in symbol:
+            base = 'USO'  # Oil ETF as proxy
+            quote = 'USD'
+        
+        # Adjust timeframe for Alpha Vantage limitations
+        if timeframe not in ['1d', '1h']:
+            print(f"Adjusting timeframe from {timeframe} to 1h for Alpha Vantage")
+            timeframe = '1h'
+        
+        # Select appropriate API endpoint
+        if timeframe == '1d':
+            endpoint = 'FX_DAILY'
+        else:
+            endpoint = 'FX_INTRADAY'
+        
+        url = f"https://www.alphavantage.co/query?function={endpoint}&from_symbol={base}&to_symbol={quote}&interval={timeframe}&apikey={ALPHA_VANTAGE_API_KEY}"
+        response = requests.get(url)
+        data = response.json()
+        
+        # Check for error messages
+        if "Error Message" in data:
+            raise Exception(f"Alpha Vantage error: {data['Error Message']}")
+        
+        # Extract time series data
+        time_series_key = f"Time Series FX ({timeframe})" if timeframe != '1d' else "Time Series FX (Daily)"
+        
+        if time_series_key in data:
+            df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
+            df = df.rename(columns={
+                '1. open': 'open',
+                '2. high': 'high',
+                '3. low': 'low',
+                '4. close': 'close'
+            })
+            df = df.astype(float)
+            df.index = pd.to_datetime(df.index)
+            df = df.sort_index()
+            df['volume'] = 0
+            df = df.reset_index()
+            df = df.rename(columns={'index': 'timestamp'})
+            df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+            return df.tail(limit)
         
     except Exception as e:
-        print(f"All data sources failed for {symbol}: {e}")
-        return None
+        print(f"Alpha Vantage error: {e}")
+
+    print(f"All data sources failed for {symbol}")
+    return None
 
 # Fetch market data with retry mechanism
 def fetch_data(symbol, timeframe, limit=200, source='ccxt'):
@@ -1019,7 +981,7 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
 
     # Mark swing highs and lows
     window = 10
-    swing_labels = []  # Track label positions for spacing
+    swing_labels = []  
 
     for i in range(window, len(df) - window):
         # Swing high
@@ -1763,7 +1725,7 @@ def main():
     # Combine all signals
     if all_signals:
         combined_signals = pd.concat(all_signals)
-        print("\n==================================== HIGH PROBABILITY TRADE SETUPS FOUND ======================================")
+        print("\n==================================== HIGH PROBABILITY TRADE SETUPS FOUND FOR AVAILABLE SYMBOLS =========================================")
         
         # Sort by confidence
         confidence_order = {'very_high': 0, 'high': 1, 'medium': 2, 'low': 3}
