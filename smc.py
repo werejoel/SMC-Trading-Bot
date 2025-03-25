@@ -16,11 +16,14 @@ from config import MT5_CONFIG, API_KEYS
 ALPHA_VANTAGE_API_KEY = API_KEYS['alphavantage']
 OANDA_API_KEY = API_KEYS['oanda']
 MT5_TERMINAL_PATH = MT5_CONFIG['path']
-
+FINNHUB_API_KEY = API_KEYS['finnhub']
 
 
 # Initialize exchange (using ccxt)
 def initialize_exchange(exchange_id='binance', api_key=None, secret=None):
+    """
+    Enhanced exchange initialization with better error handling and rate limiting
+    """
     try:
         exchange_class = getattr(ccxt, exchange_id)
         exchange = exchange_class({
@@ -28,27 +31,36 @@ def initialize_exchange(exchange_id='binance', api_key=None, secret=None):
             'secret': secret,
             'enableRateLimit': True,
             'options': {
-                'defaultType': 'spot',  # Set to 'spot' for spot trading
+                'defaultType': 'spot',
                 'adjustForTimeDifference': True,
-                'recvWindow': 60000,  # Increased timeout
+                'recvWindow': 60000,
+                'validateMarkets': True,  # Add market validation
+                'fetchOrderBookLimit': 100
             },
-            'timeout': 30000,  # 30 seconds timeout
+            'timeout': 30000,
+            'rateLimit': 1000  # Conservative rate limit
         })
 
-        # Load markets to ensure proper symbol mapping
-        exchange.load_markets()
+        # Load markets with retry mechanism
+        for attempt in range(3):
+            try:
+                exchange.load_markets()
+                break
+            except Exception as e:
+                print(f"Market loading attempt {attempt + 1} failed: {e}")
+                if attempt == 2:
+                    return None
+                time.sleep(2)
 
-        # Set specific settings for BTC analysis
-        exchange.options['warnOnFetchOHLCVLimitArgument'] = False
-        exchange.options['fetchOHLCVWarning'] = False
-        
-        # Test connection with a simple BTC ticker request
-        try:
-            exchange.fetch_ticker('BTC/USDT')
-        except Exception as e:
-            print(f"Error testing BTC ticker: {e}")
-            return None
-            
+        # Test connection with multiple pairs
+        test_pairs = ['BTC/USDT', 'ETH/USDT']
+        for pair in test_pairs:
+            try:
+                exchange.fetch_ticker(pair)
+            except Exception as e:
+                print(f"Error testing {pair}: {e}")
+                continue
+                
         return exchange
     except Exception as e:
         print(f"Error initializing exchange: {e}")
@@ -81,65 +93,140 @@ def initialize_forex_connection():
 
 def fetch_forex_data(symbol, timeframe, limit=200):
     """
-    Fetch forex/commodities data from multiple sources
-    Supported symbols: XAUUSD, GBPJPY, USDJPY, USOIL
+    Enhanced forex/commodities data fetching with multiple data sources
+    Now includes Finnhub as primary source for forex
     """
-    # Convert timeframe to MT5 format
-    tf_map = {
-        '1m': '1',
-        '5m': '5',
-        '15m': '15',
-        '30m': '30',
-        '1h': '60',
-        '4h': '240',
-        '1d': '1440'
-    }
-    
-    # Try MetaTrader5 first
+    try:
+        # Map timeframe to Finnhub format
+        tf_map = {
+            '1m': '1',
+            '5m': '5',
+            '15m': '15',
+            '30m': '30',
+            '1h': '60',
+            '4h': '240',
+            '1d': 'D'
+        }
+        
+        # Format symbol for Finnhub
+        if 'XAU' in symbol:
+            finnhub_symbol = 'OANDA:XAU_USD'
+        elif 'USD' in symbol:
+            finnhub_symbol = f'OANDA:{symbol[:3]}_{symbol[3:]}'
+        else:
+            finnhub_symbol = f'OANDA:{symbol.replace("/", "_")}'
+            
+        # Calculate timestamps
+        end_time = int(time.time())
+        start_time = end_time - (limit * tf_map[timeframe] * 60)  # Convert to seconds
+        
+        # Make API request
+        url = f'https://finnhub.io/api/v1/forex/candle'
+        params = {
+            'symbol': finnhub_symbol,
+            'resolution': tf_map[timeframe],
+            'from': start_time,
+            'to': end_time,
+            'token': FINNHUB_API_KEY
+        }
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if data.get('s') == 'ok' and len(data.get('t', [])) > 0:
+            df = pd.DataFrame({
+                'timestamp': pd.to_datetime(data['t'], unit='s'),
+                'open': data['o'],
+                'high': data['h'],
+                'low': data['l'],
+                'close': data['c'],
+                'volume': data['v']
+            })
+            df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+            return df
+            
+        else:
+            print(f"Finnhub data fetch failed for {symbol}, trying MT5...")
+            
+    except Exception as e:
+        print(f"Finnhub error: {e}")
+
+    # Try MetaTrader5 first (primary source for forex)
     mt5 = initialize_forex_connection()
     if mt5:
         try:
-            # Convert symbol format
-            mt5_symbol = symbol.replace('XAU', 'GOLD').replace('/', '')
+            # Format symbol for MT5
+            mt5_symbol = symbol.replace('/', '')
+            if 'XAU' in symbol:
+                mt5_symbol = 'XAUUSD'
+            elif 'OIL' in symbol:
+                mt5_symbol = 'USOIL'
             
-            # Get timeframe constant
-            tf_constant = getattr(mt5.TIMEFRAME_M1 if tf_map[timeframe] == '1' else
-                                mt5.TIMEFRAME_M5 if tf_map[timeframe] == '5' else
-                                mt5.TIMEFRAME_M15 if tf_map[timeframe] == '15' else
-                                mt5.TIMEFRAME_M30 if tf_map[timeframe] == '30' else
-                                mt5.TIMEFRAME_H1 if tf_map[timeframe] == '60' else
-                                mt5.TIMEFRAME_H4 if tf_map[timeframe] == '240' else
-                                mt5.TIMEFRAME_D1)
-
-            # Fetch data
-            rates = mt5.copy_rates_from_pos(mt5_symbol, tf_constant, 0, limit)
-            if rates is not None and len(rates) > 0:
-                df = pd.DataFrame(rates)
-                df['timestamp'] = pd.to_datetime(df['time'], unit='s')
-                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-                df = df.rename(columns={
-                    'open': 'open',
-                    'high': 'high',
-                    'low': 'low',
-                    'close': 'close',
-                    'tick_volume': 'volume'
-                })
-                return df
-
+            # Ensure symbol exists in MT5
+            symbol_info = mt5.symbol_info(mt5_symbol)
+            if symbol_info is None:
+                print(f"Symbol {mt5_symbol} not found in MT5")
+                raise LookupError(f"Symbol {mt5_symbol} not found in MT5")
+            
+            # Fetch data with retry mechanism
+            for attempt in range(3):
+                try:
+                    rates = mt5.copy_rates_from_pos(mt5_symbol, tf_map[timeframe], 0, limit)
+                    if rates is not None and len(rates) > 0:
+                        df = pd.DataFrame(rates)
+                        df['timestamp'] = pd.to_datetime(df['time'], unit='s')
+                        df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+                        df = df.rename(columns={
+                            'open': 'open',
+                            'high': 'high',
+                            'low': 'low',
+                            'close': 'close',
+                            'tick_volume': 'volume',
+                            'spread': 'spread',
+                            'real_volume': 'real_volume'
+                        })
+                        return df
+                except Exception as e:
+                    print(f"MT5 attempt {attempt + 1} failed: {e}")
+                    time.sleep(1)
+            
+            print("All MT5 attempts failed, trying alternative source")
+            raise Exception("MT5 data fetch failed")
+            
         except Exception as e:
-            print(f"MT5 data fetch error: {e}")
+            print(f"MT5 error: {e}")
 
-    # Fallback to Alpha Vantage for forex data
-    if 'USD' in symbol or 'JPY' in symbol:
+    # Try Alpha Vantage as backup for forex pairs
+    if any(pair in symbol for pair in ['USD', 'EUR', 'GBP', 'JPY', 'XAU']):
         try:
+            # Format symbol for Alpha Vantage
             base = symbol[:3]
             quote = symbol[3:]
-            url = f"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={base}&to_symbol={quote}&apikey={ALPHA_VANTAGE_API_KEY}"
+            
+            # Adjust timeframe for Alpha Vantage limitations
+            if timeframe not in ['1d', '1h']:
+                print(f"Adjusting timeframe from {timeframe} to 1h for Alpha Vantage")
+                timeframe = '1h'
+            
+            # Select appropriate API endpoint
+            if timeframe == '1d':
+                endpoint = 'FX_DAILY'
+            else:
+                endpoint = 'FX_INTRADAY'
+            
+            url = f"https://www.alphavantage.co/query?function={endpoint}&from_symbol={base}&to_symbol={quote}&interval={timeframe}&apikey={ALPHA_VANTAGE_API_KEY}"
             response = requests.get(url)
             data = response.json()
             
-            if "Time Series FX (Daily)" in data:
-                df = pd.DataFrame.from_dict(data["Time Series FX (Daily)"], orient='index')
+            # Check for error messages
+            if "Error Message" in data:
+                raise Exception(f"Alpha Vantage error: {data['Error Message']}")
+            
+            # Extract time series data
+            time_series_key = f"Time Series FX ({timeframe})" if timeframe != '1d' else "Time Series FX (Daily)"
+            
+            if time_series_key in data:
+                df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
                 df = df.rename(columns={
                     '1. open': 'open',
                     '2. high': 'high',
@@ -154,24 +241,72 @@ def fetch_forex_data(symbol, timeframe, limit=200):
                 df = df.rename(columns={'index': 'timestamp'})
                 df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
                 return df.tail(limit)
-
+            
         except Exception as e:
             print(f"Alpha Vantage data fetch error: {e}")
 
     # Last resort: Try CCXT for available symbols
     try:
-        # Modify symbol format for CCXT
-        ccxt_symbol = symbol.replace('XAU', 'GOLD')
-        if 'OIL' in symbol:
-            ccxt_symbol = 'USOIL/USD'
-            
+        # Map forex symbols to available CCXT markets
+        ccxt_symbols = {
+            'XAUUSD': 'GOLD/USD',
+            'USOIL': 'USOIL/USD',
+            'BTCUSD': 'BTC/USD'
+        }
+        
+        ccxt_symbol = ccxt_symbols.get(symbol.replace('/', ''), symbol)
         return fetch_data(ccxt_symbol, timeframe, limit, source='ccxt')
+        
     except Exception as e:
-        print(f"CCXT data fetch error: {e}")
+        print(f"All data sources failed for {symbol}: {e}")
         return None
 
 # Fetch market data with retry mechanism
 def fetch_data(symbol, timeframe, limit=200, source='ccxt'):
+    """
+    Enhanced data fetching with better error handling and data validation
+    """
+    if source == 'ccxt':
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # Validate symbol format
+                if '/' not in symbol:
+                    symbol = f"{symbol[:3]}/{symbol[3:]}"
+
+                # Ensure timeframe is supported
+                supported_timeframes = exchange.timeframes
+                if timeframe not in supported_timeframes:
+                    print(f"Timeframe {timeframe} not supported. Using 1h instead.")
+                    timeframe = '1h'
+
+                # Fetch OHLCV with validation
+                ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+                if not ohlcv or len(ohlcv) < limit/2:
+                    raise Exception("Insufficient data points")
+
+                df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                
+                # Add data validation
+                df = df[df['high'] >= df['low']]  # Remove invalid candles
+                df = df[df['volume'] > 0]  # Remove zero volume candles
+                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+
+                # Check for gaps in data
+                time_diff = df['timestamp'].diff()
+                expected_diff = pd.Timedelta(timeframe.replace('m', 'min').replace('h', 'hour'))
+                if time_diff.max() > expected_diff * 2:
+                    print(f"Warning: Data gaps detected in {symbol}")
+
+                return df
+            except Exception as e:
+                print(f"Attempt {attempt+1}/{max_retries} failed: {e}")
+                time.sleep(2)  # Wait before retry
+        
+        print(f"Failed to fetch data for {symbol} after {max_retries} attempts")
+        return None
+
     if source == 'alphavantage':
         try:
             url = f"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={symbol[:3]}&to_symbol={symbol[4:]}&apikey={ALPHA_VANTAGE_API_KEY}"
@@ -228,14 +363,6 @@ def add_technical_indicators(df):
     # Volume indicators
     df['volume_ema'] = ta.volume.volume_weighted_average_price(df['high'], df['low'], df['close'], df['volume'])
     
-    # Trend indicators
-    df['ema20'] = ta.trend.ema_indicator(df['close'], window=20)
-    df['ema50'] = ta.trend.ema_indicator(df['close'], window=50)
-    df['ema200'] = ta.trend.ema_indicator(df['close'], window=200)
-    df['macd'] = ta.trend.macd(df['close'])
-    df['macd_signal'] = ta.trend.macd_signal(df['close'])
-    df['macd_diff'] = ta.trend.macd_diff(df['close'])
-    
     # Momentum indicators
     df['rsi'] = ta.momentum.rsi(df['close'])
     df['stoch'] = ta.momentum.stoch(df['high'], df['low'], df['close'])
@@ -248,6 +375,22 @@ def add_technical_indicators(df):
     
     return df
 
+def add_crypto_indicators(df):
+    """
+    Add crypto-specific technical indicators
+    """
+    df = add_technical_indicators(df)  # Add base indicators first
+    
+    # Add crypto-specific indicators
+    df['mf_index'] = ta.volume.money_flow_index(df['high'], df['low'], df['close'], df['volume'])
+    df['vwap'] = ta.volume.volume_weighted_average_price(df['high'], df['low'], df['close'], df['volume'])
+    df['cmf'] = ta.volume.chaikin_money_flow(df['high'], df['low'], df['close'], df['volume'])
+    
+    # Add volatility bands for crypto
+    df['bb_upper'] = ta.volatility.bollinger_hband(df['close'], window=20, window_dev=2.5)  # Wider bands for crypto
+    df['bb_lower'] = ta.volatility.bollinger_lband(df['close'], window=20, window_dev=2.5)
+    
+    return df
 
 
 # ===== LIQUIDITY DETECTION =====
@@ -298,7 +441,7 @@ def identify_liquidity_zones(df, window=10, threshold_pct=0.005):
 
 
 
-# ===== SUPPLY AND DEMAND ZONES =====
+# ===== SUPPLY AND DEMAND ZONES Logic =====
 def identify_supply_demand_zones(df, window=20, rejection_threshold=0.02):
     """
     Identify supply and demand zones based on price rejection and volume.
@@ -326,7 +469,7 @@ def identify_supply_demand_zones(df, window=20, rejection_threshold=0.02):
                         'strength': df['volume'][i] / df['volume'][i-10:i+10].mean()
                     })
         
-        # Refined demand zone criteria:
+        # Demand zone criteria:
         # - A strong bullish candle (close much higher than open)
         # - Followed by price moving up
         # - Higher than average volume
@@ -351,51 +494,91 @@ def identify_supply_demand_zones(df, window=20, rejection_threshold=0.02):
 
 
 # ===== ORDER BLOCKS =====
-def identify_order_blocks(df, lookback=3):
+def identify_order_blocks(df, lookback=3, min_volume_multiplier=2.0):
     """
-    Identify order blocks (mitigated and unmitigated)
-    - Order blocks are areas where price started a strong move
+    Identify institutional order blocks with clearer rules:
+    1. Strong volume spike compared to average
+    2. Clear price rejection in opposite direction
+    3. Clean break in intended direction
+    4. Block hasn't been mitigated (price hasn't returned)
     """
     order_blocks = []
+    avg_volume = df['volume'].rolling(20).mean()
+    atr = df['atr'].fillna(df['atr'].mean())  # Handle NaN values
     
     for i in range(lookback, len(df) - lookback):
-        # Bullish order block: A bearish candle followed by strong bullish moves
-        if df['close'][i] < df['open'][i]:  # Bearish candle
-            # Check if next candles show strong bullish momentum
-            next_candles_bullish = all(df['close'][j] > df['open'][j] for j in range(i+1, min(i+lookback+1, len(df))))
-            next_candles_higher = df['high'][i+lookback] > df['high'][i] + (df['high'][i] - df['low'][i])
+        candle_range = df['high'].iloc[i] - df['low'].iloc[i]
+        
+        # Check for significant volume
+        volume_spike = df['volume'].iloc[i] > avg_volume.iloc[i] * min_volume_multiplier
+        
+        if not volume_spike:
+            continue
             
-            if next_candles_bullish and next_candles_higher:
-                # Check if this order block is still unmitigated (price hasn't returned to it)
-                mitigated = any(df['low'][j] <= df['low'][i] for j in range(i+lookback+1, len(df)))
+        # Bullish Order Block (Bearish candle followed by strong bullish move)
+        if df['close'].iloc[i] < df['open'].iloc[i]:  # Bearish candle
+            # Measure momentum after the candle
+            next_candles_momentum = sum(1 for j in range(i+1, min(i+lookback+1, len(df)))
+                                     if df['close'].iloc[j] > df['open'].iloc[j])
+            
+            price_movement = (df['high'].iloc[i+1:i+lookback+1].max() - df['low'].iloc[i]) / atr.iloc[i]
+            
+            if next_candles_momentum >= 2 and price_movement > 1.5:  # Strong bullish follow-through
+                # Check if block hasn't been mitigated
+                mitigated = any(df['low'].iloc[j] <= df['low'].iloc[i] 
+                              for j in range(i+lookback+1, len(df)))
+                
+                # Calculate block strength based on volume and follow-through
+                strength = (df['volume'].iloc[i] / avg_volume.iloc[i]) * price_movement
                 
                 order_blocks.append({
                     'type': 'bullish',
-                    'high': df['high'][i],
-                    'low': df['low'][i],
-                    'timestamp': df['timestamp'][i],
-                    'mitigated': mitigated
+                    'high': df['high'].iloc[i],
+                    'low': df['low'].iloc[i],
+                    'entry': df['close'].iloc[i],  # Add entry price
+                    'timestamp': df['timestamp'].iloc[i],
+                    'mitigated': mitigated,
+                    'strength': strength,
+                    'volume_multiple': df['volume'].iloc[i] / avg_volume.iloc[i]
                 })
         
-        # Bearish order block: A bullish candle followed by strong bearish moves
-        if df['close'][i] > df['open'][i]:  # Bullish candle
-            # Check if next candles show strong bearish momentum
-            next_candles_bearish = all(df['close'][j] < df['open'][j] for j in range(i+1, min(i+lookback+1, len(df))))
-            next_candles_lower = df['low'][i+lookback] < df['low'][i] - (df['high'][i] - df['low'][i])
+        # Bearish Order Block (Bullish candle followed by strong bearish move)
+        if df['close'].iloc[i] > df['open'].iloc[i]:  # Bullish candle
+            next_candles_momentum = sum(1 for j in range(i+1, min(i+lookback+1, len(df)))
+                                     if df['close'].iloc[j] < df['open'].iloc[j])
             
-            if next_candles_bearish and next_candles_lower:
-                # Check if this order block is still unmitigated (price hasn't returned to it)
-                mitigated = any(df['high'][j] >= df['high'][i] for j in range(i+lookback+1, len(df)))
+            price_movement = (df['high'].iloc[i] - df['low'].iloc[i+1:i+lookback+1].min()) / atr.iloc[i]
+            
+            if next_candles_momentum >= 2 and price_movement > 1.5:  # Strong bearish follow-through
+                # Check if block hasn't been mitigated
+                mitigated = any(df['high'].iloc[j] >= df['high'].iloc[i] 
+                              for j in range(i+lookback+1, len(df)))
+                
+                # Calculate block strength
+                strength = (df['volume'].iloc[i] / avg_volume.iloc[i]) * price_movement
                 
                 order_blocks.append({
                     'type': 'bearish',
-                    'high': df['high'][i],
-                    'low': df['low'][i],
-                    'timestamp': df['timestamp'][i],
-                    'mitigated': mitigated
+                    'high': df['high'].iloc[i],
+                    'low': df['low'].iloc[i],
+                    'entry': df['close'].iloc[i],  # Add entry price
+                    'timestamp': df['timestamp'].iloc[i],
+                    'mitigated': mitigated,
+                    'strength': strength,
+                    'volume_multiple': df['volume'].iloc[i] / avg_volume.iloc[i]
                 })
     
-    return pd.DataFrame(order_blocks)
+    # Convert to DataFrame and sort by strength
+    df_blocks = pd.DataFrame(order_blocks)
+    if not df_blocks.empty:
+        df_blocks = df_blocks.sort_values('strength', ascending=False).reset_index(drop=True)
+        # Keep only top 3 strongest blocks of each type
+        df_blocks = pd.concat([
+            df_blocks[df_blocks['type'] == 'bullish'].head(3),
+            df_blocks[df_blocks['type'] == 'bearish'].head(3)
+        ]).reset_index(drop=True)
+    
+    return df_blocks
 
 
 
@@ -541,8 +724,11 @@ def calculate_smart_entry_points(df, liquidity_zones, supply_demand_zones, candl
     # Filter unmitigated order blocks
     unmitigated_blocks = order_blocks[order_blocks['mitigated'] == False]
     
+    # Remove EMA conditions and use other criteria for trend determination
+    trend = "bullish" if len(identify_market_structure_breaks(df)) > 0 and identify_market_structure_breaks(df).iloc[-1]['type'] == 'Bullish BMS' else "bearish"
+    
     # Factor 1: Entry near strong demand zones during uptrends
-    if last_row['ema20'] > last_row['ema50']:  # Uptrend condition
+    if trend == "bullish":
         for _, zone in supply_demand_zones[supply_demand_zones['type'] == 'demand'].iterrows():
             if zone['top'] < current_price < zone['top'] * 1.02:  # Price just above demand zone
                 # Check if required liquidity is taken out
@@ -561,7 +747,7 @@ def calculate_smart_entry_points(df, liquidity_zones, supply_demand_zones, candl
                             })
     
     # Factor 2: Entry near strong supply zones during downtrends
-    if last_row['ema20'] < last_row['ema50']:  # Downtrend condition
+    if trend == "bearish":
         for _, zone in supply_demand_zones[supply_demand_zones['type'] == 'supply'].iterrows():
             if zone['bottom'] > current_price > zone['bottom'] * 0.98:  # Price just below supply zone
                 # Check if required liquidity is taken out
@@ -606,8 +792,8 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
     colors = {
         'bg': '#f0f3fa',           # Light blue-gray background
         'grid': '#e6e9f0',         # Subtle grid lines
-        'bar_up': '#089981',       # Forest green for bullish
-        'bar_down': '#f23645',     # Crimson red for bearish
+        'bar_up': '#2596be',       # Forest green for bullish
+        'bar_down': '#010406',     # Crimson red for bearish
         'ma1': '#2962ff',          # Royal blue for EMA 20
         'ma2': '#9c27b0',          # Purple for EMA 50
         'ma3': '#ff6d00',          # Orange for EMA 200
@@ -646,13 +832,7 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
                     [df['low'].iloc[i], df['high'].iloc[i]], 
                     color=color, linewidth=0.5, alpha=0.5)
     
-    # Plot EMAs
-    ax_main.plot(df['timestamp_mpl'], df['ema20'], color=colors['ma1'], 
-                 linewidth=1.5, label='EMA 20', alpha=0.9)
-    ax_main.plot(df['timestamp_mpl'], df['ema50'], color=colors['ma2'], 
-                 linewidth=1.5, label='EMA 50', alpha=0.9)
-    ax_main.plot(df['timestamp_mpl'], df['ema200'], color=colors['ma3'], 
-                 linewidth=1.5, label='EMA 200', alpha=0.9)
+    
     
     # Plot entry points, stop-loss, and take-profit levels with prices
     if not smart_entries.empty:
@@ -742,9 +922,7 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
             color=color, alpha=0.2, label=label if label not in ax_main.get_legend_handles_labels()[1] else ""
         )
 
-    # Remove other unnecessary labels and lines
-    # Comment out or remove plotting for liquidity zones, order blocks, and other markers
-
+    
     # Filter required liquidity zones
     required_liquidity = liquidity_zones[
         (liquidity_zones['type'] == 'liquidity_high') & (liquidity_zones['level'] > df['close'].iloc[-1]) |
@@ -806,26 +984,38 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
     # Plot unmitigated order blocks
     for _, block in order_blocks[order_blocks['mitigated'] == False].iterrows():
         color = colors['bar_up'] if block['type'] == 'bullish' else colors['bar_down']
+        alpha = 0.3 if block['mitigated'] else 0.4
         
-        # Add label
-        y_pos = (block['high'] + block['low']) / 2
-        label = f"{'Bullish' if block['type'] == 'bullish' else 'Bearish'} Order Block"
-        ax_main.annotate(label, 
-                         xy=(df['timestamp_mpl'].iloc[0], y_pos),
-                         xytext=(-50, 0),
-                         textcoords='offset points',
-                         fontsize=10,
-                         color=color,
-                         bbox=dict(facecolor=colors['label_bg'],
-                                   edgecolor=color,
-                                   alpha=0.9,
-                                   boxstyle='round,pad=0.5'),
-                         arrowprops=dict(arrowstyle='->',
-                                         color=color,
-                                         alpha=0.8,
-                                         connectionstyle='arc3,rad=-0.2'),
-                         va='center',
-                         ha='right')
+        # Plot order block zone
+        ax_main.fill_between(
+            [mdates.date2num(block['timestamp']), df['timestamp_mpl'].iloc[-1]],
+            [block['low'], block['low']],
+            [block['high'], block['high']],
+            color=color, alpha=alpha
+        )
+        
+        # Add detailed label
+        label = f"{'Bull' if block['type'] == 'bullish' else 'Bear'} OB\nVol: {block['volume_multiple']:.1f}x\nStr: {block['strength']:.1f}"
+        ax_main.annotate(
+            label,
+            xy=(mdates.date2num(block['timestamp']), block['entry']),
+            xytext=(-50, 0),
+            textcoords='offset points',
+            fontsize=9,
+            color=color,
+            bbox=dict(
+                facecolor=colors['label_bg'],
+                edgecolor=color,
+                alpha=0.9,
+                boxstyle='round,pad=0.5'
+            ),
+            arrowprops=dict(
+                arrowstyle='->',
+                color=color,
+                alpha=0.8,
+                connectionstyle='arc3,rad=-0.2'
+            )
+        )
 
     # Mark swing highs and lows
     window = 10
@@ -915,26 +1105,40 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
 # ===== ANALYSIS AND SIGNAL GENERATION =====
 def analyze_market(symbol, chart_timeframe='4h', entry_timeframe='15m'):
     """
-    Perform comprehensive market analysis for a symbol
-    chart_timeframe: timeframe for the main chart display (4h)
-    entry_timeframe: timeframe for calculating entry points (15m)
+    Enhanced market analysis with better crypto-specific handling
     """
     print(f"\n--- Analyzing {symbol} ---")
     
-    # Fetch data for multiple timeframes
-    df_chart = fetch_data(symbol, chart_timeframe, limit=200)  # 4h data for chart
-    df_entry = fetch_data(symbol, entry_timeframe, limit=200)  # 15m data for entries
+    # Validate timeframes for crypto
+    valid_timeframes = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d']
+    if chart_timeframe not in valid_timeframes:
+        chart_timeframe = '1h'
+    if entry_timeframe not in valid_timeframes:
+        entry_timeframe = '15m'
+    
+    # Fetch data with volume validation
+    df_chart = fetch_data(symbol, chart_timeframe, limit=200)
+    df_entry = fetch_data(symbol, entry_timeframe, limit=200)
     
     if df_chart is None or df_entry is None:
-        print(f"Could not fetch data for {symbol}")
+        print(f"Could not fetch valid data for {symbol}")
         return None
+    
+    # Validate volume data
+    if df_chart['volume'].mean() == 0 or df_entry['volume'].mean() == 0:
+        print(f"Invalid volume data for {symbol}")
+        return None
+
+    # Add crypto-specific market analysis
+    df_chart = add_crypto_indicators(df_chart)
+    df_entry = add_crypto_indicators(df_entry)
     
     # Add technical indicators to both timeframes
     df_chart = add_technical_indicators(df_chart)
     df_entry = add_technical_indicators(df_entry)
     
-    # Determine trend from 4h timeframe
-    trend = "bullish" if df_chart['ema50'].iloc[-1] > df_chart['ema200'].iloc[-1] else "bearish"
+    # Determine trend using market structure instead of EMAs
+    trend = "bullish" if len(identify_market_structure_breaks(df_chart)) > 0 and identify_market_structure_breaks(df_chart).iloc[-1]['type'] == 'Bullish BMS' else "bearish"
     print(f"Chart timeframe trend: {trend}")
     
     # Use 15m timeframe for detailed analysis
@@ -1220,7 +1424,7 @@ def analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h']):
         
         # Store results for this timeframe
         results[tf] = {
-            'trend': 'bullish' if df['ema20'].iloc[-1] > df['ema50'].iloc[-1] else 'bearish',
+            'trend': 'bullish' if len(identify_market_structure_breaks(df)) > 0 and identify_market_structure_breaks(df).iloc[-1]['type'] == 'Bullish BMS' else 'bearish',
             'rsi': df['rsi'].iloc[-1],
             'atr': df['atr'].iloc[-1],
             'liquidity_zones': identify_liquidity_zones(df),
@@ -1304,8 +1508,7 @@ def analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h']):
                         })
         
         elif trend == 'bearish':
-            # Look for bearish setups with confluence
-            
+            # Look for bearish setups with confluence          
             # Check for supply zones near current price across timeframes
             supply_zone_confluence = False
             for tf in timeframes:
@@ -1497,9 +1700,15 @@ def main():
     """
     Main function
     """
-    print("=" * 50)
-    print("Advanced Smart Money Trading Bot By LitoProgrammer")
-    print("=" * 50)
+    print("=" * 120)
+    print("=======================  Welcome To Our Trading Bot =======================================================")    
+    print("   =======================  This Bot Analyze Crypto Market And Give You The Best Signals =====================")
+    print("   =======================  This Bot Will Also Analyze Forex And Commodities =================================")
+    print("   =======================  Only Enter The Trade After You Have Checked The Signals Thoroughly ================")
+    print("   =======================  This Robot was Developed BY Lito Programmer's Team ================================")
+    print("   =======================  Trade With Easy Need Help Contact Us +256-705-672-545/789-251-487 =================")
+    print("   =======================  Email: joellitoprogrammer2@gmail.com ===============================================")
+    print("=" * 120)
     
     # Define symbols to analyze (now including forex and commodities)
     crypto_symbols = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'SOL/USDT', 'ADA/USDT']
@@ -1554,11 +1763,22 @@ def main():
     # Combine all signals
     if all_signals:
         combined_signals = pd.concat(all_signals)
-        print("\n=== HIGH PROBABILITY TRADE SETUPS ===")
+        print("\n==================================== HIGH PROBABILITY TRADE SETUPS FOUND ======================================")
         
         # Sort by confidence
         confidence_order = {'very_high': 0, 'high': 1, 'medium': 2, 'low': 3}
         combined_signals['confidence_value'] = combined_signals['confidence'].map(confidence_order)
+        combined_signals = combined_signals.sort_values('confidence_value')
+        
+        # Display top signals
+        for _, signal in combined_signals.iterrows():
+            print(f"\nSymbol: {signal['symbol']}")
+            print(f"Signal: {signal['signal_type'].upper()}")
+            print(f"Entry: {signal['entry_price']:.8f}")
+            print(f"Stop Loss: {signal['stop_loss']:.8f}")
+            print(f"Take Profit: {signal['take_profit']:.8f}")
+            print(f"Confidence: {signal['confidence'].upper()}")
+            print(f"Reason: {signal['reason']}")
         combined_signals = combined_signals.sort_values('confidence_value')
         
         # Display top signals
