@@ -93,62 +93,134 @@ def initialize_forex_connection():
 
 def fetch_forex_data(symbol, timeframe, limit=200):
     """
-    Enhanced forex/commodities data fetching with multiple data sources
-    Now includes Finnhub as primary source for forex
+    Fetch forex/commodities data using Alpha Vantage with Finnhub fallback
     """
     try:
-        # Map timeframe to Finnhub format (fix string/int issue)
-        tf_map = {
-            '1m': 1,
-            '5m': 5,
-            '15m': 15,
-            '30m': 30,
-            '1h': 60,
-            '4h': 240,
-            '1d': 'D',
-            '1w': 'W',
-            '1M': 'M'
-        }
+        # Format symbol for API requests
+        if 'XAU' in symbol:
+            base = 'XAU'
+            quote = 'USD'
+        elif 'USOIL' in symbol:
+            # Try Finnhub directly for oil data
+            return fetch_from_finnhub(symbol, timeframe, limit)
+        else:
+            base = symbol[:3]
+            quote = symbol[3:] or 'USD'
         
-        # Format symbol for Finnhub with proper mapping
-        symbol_map = {
-            'XAUUSD': 'OANDA:XAU_USD',
-            'USOIL': 'OANDA:OIL_USD',
-            'GBPJPY': 'OANDA:GBP_JPY',
-            'USDJPY': 'OANDA:USD_JPY',
-        }
-        
-        finnhub_symbol = symbol_map.get(symbol.replace('/', ''))
-        if not finnhub_symbol:
-            if 'USD' in symbol:
-                finnhub_symbol = f'OANDA:{symbol[:3]}_{symbol[3:]}'
-            else:
-                finnhub_symbol = f'OANDA:{symbol.replace("/", "_")}'
+        # First try Alpha Vantage
+        data = fetch_from_alphavantage(base, quote, timeframe)
+        if data is not None:
+            return data
             
-        # Get numeric timeframe value
-        tf_value = tf_map.get(timeframe)
-        if tf_value is None:
-            print(f"Unsupported timeframe {timeframe}, using 1h")
-            tf_value = 60  # Default to 1h
+        # If Alpha Vantage fails, try Finnhub
+        print(f"Alpha Vantage failed, trying Finnhub for {symbol}")
+        return fetch_from_finnhub(symbol, timeframe, limit)
+        
+    except Exception as e:
+        print(f"Error fetching forex data: {e}")
+        return None
+
+def fetch_from_alphavantage(base, quote, timeframe):
+    """Helper function for Alpha Vantage API"""
+    av_timeframe_map = {
+        '1m': 'FX_INTRADAY&interval=1min',
+        '5m': 'FX_INTRADAY&interval=5min',
+        '15m': 'FX_INTRADAY&interval=15min',
+        '30m': 'FX_INTRADAY&interval=30min',
+        '1h': 'FX_INTRADAY&interval=60min',
+        '4h': 'FX_INTRADAY&interval=60min',
+        '1d': 'FX_DAILY'
+    }
+    
+    endpoint = av_timeframe_map.get(timeframe, 'FX_INTRADAY&interval=60min')
+    url = f"https://www.alphavantage.co/query?function={endpoint}&from_symbol={base}&to_symbol={quote}&outputsize=full&apikey={ALPHA_VANTAGE_API_KEY}"
+    
+    for attempt in range(3):
+        try:
+            response = requests.get(url)
+            data = response.json()
             
-        # Calculate timestamps
-        end_time = int(time.time())
-        start_time = end_time - (limit * (tf_value if isinstance(tf_value, int) else 1440) * 60)
-        
-        # Make API request
-        url = f'https://finnhub.io/api/v1/forex/candle'
-        params = {
-            'symbol': finnhub_symbol,
-            'resolution': str(tf_value),  # Convert to string as required by API
-            'from': start_time,
-            'to': end_time,
-            'token': FINNHUB_API_KEY
-        }
-        
-        response = requests.get(url, params=params)
+            # Check for error messages
+            if "Error Message" in data:
+                raise Exception(f"Alpha Vantage error: {data['Error Message']}")
+            
+            # Extract time series data
+            time_series_key = next((k for k in data.keys() if 'Time Series' in k), None)
+            if not time_series_key:
+                raise Exception("No time series data found")
+            
+            df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
+            df = df.rename(columns={
+                '1. open': 'open',
+                '2. high': 'high',
+                '3. low': 'low',
+                '4. close': 'close'
+            })
+            
+            # Process the data
+            df = df.astype(float)
+            df.index = pd.to_datetime(df.index)
+            df = df.sort_index()
+            df['volume'] = 0
+            df = df.reset_index()
+            df = df.rename(columns={'index': 'timestamp'})
+            df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+            
+            # Handle 4h timeframe
+            if timeframe == '4h':
+                df.set_index('timestamp', inplace=True)
+                df = df.resample('4H').agg({
+                    'open': 'first',
+                    'high': 'max',
+                    'low': 'min',
+                    'close': 'last',
+                    'volume': 'sum'
+                }).dropna()
+                df.reset_index(inplace=True)
+                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+            
+            return df.tail(200)
+            
+        except Exception as e:
+            print(f"Alpha Vantage attempt {attempt + 1} failed: {e}")
+            if attempt == 2:
+                return None
+            time.sleep(15)
+
+def fetch_from_finnhub(symbol, timeframe, limit=200):
+    """Helper function for Finnhub API"""
+    # Map timeframes to Finnhub format
+    finnhub_timeframe_map = {
+        '1m': '1',
+        '5m': '5',
+        '15m': '15',
+        '30m': '30',
+        '1h': '60',
+        '4h': '240',
+        '1d': 'D'
+    }
+    
+    resolution = finnhub_timeframe_map.get(timeframe, '60')
+    
+    # Format symbol for Finnhub
+    if 'USOIL' in symbol:
+        finnhub_symbol = 'OANDA:OIL_USD'
+    elif 'XAU' in symbol:
+        finnhub_symbol = 'OANDA:XAU_USD'
+    else:
+        finnhub_symbol = f"OANDA:{symbol}"
+    
+    # Calculate timestamps
+    to_ts = int(time.time())
+    from_ts = to_ts - (limit * int(resolution) * 60)
+    
+    url = f"https://finnhub.io/api/v1/forex/candle?symbol={finnhub_symbol}&resolution={resolution}&from={from_ts}&to={to_ts}&token={FINNHUB_API_KEY}"
+    
+    try:
+        response = requests.get(url)
         data = response.json()
         
-        if data.get('s') == 'ok' and len(data.get('t', [])) > 0:
+        if data.get('s') == 'ok':
             df = pd.DataFrame({
                 'timestamp': pd.to_datetime(data['t'], unit='s'),
                 'open': data['o'],
@@ -160,68 +232,12 @@ def fetch_forex_data(symbol, timeframe, limit=200):
             df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
             return df
             
-    except Exception as e:
-        print(f"Finnhub error: {e}")
-
-    print("Finnhub fetch failed, trying Alpha Vantage...")
-    
-    try:
-        # Format symbol for Alpha Vantage
-        base = symbol[:3]
-        quote = symbol[3:].replace('USD', '') or 'USD'  # Handle special cases
-        
-        # Special cases for commodities
-        if 'XAU' in symbol:
-            base = 'XAU'
-            quote = 'USD'
-        elif 'USOIL' in symbol:
-            base = 'USO'  # Oil ETF as proxy
-            quote = 'USD'
-        
-        # Adjust timeframe for Alpha Vantage limitations
-        if timeframe not in ['1d', '1h']:
-            print(f"Adjusting timeframe from {timeframe} to 1h for Alpha Vantage")
-            timeframe = '1h'
-        
-        # Select appropriate API endpoint
-        if timeframe == '1d':
-            endpoint = 'FX_DAILY'
-        else:
-            endpoint = 'FX_INTRADAY'
-        
-        url = f"https://www.alphavantage.co/query?function={endpoint}&from_symbol={base}&to_symbol={quote}&interval={timeframe}&apikey={ALPHA_VANTAGE_API_KEY}"
-        response = requests.get(url)
-        data = response.json()
-        
-        # Check for error messages
-        if "Error Message" in data:
-            raise Exception(f"Alpha Vantage error: {data['Error Message']}")
-        
-        # Extract time series data
-        time_series_key = f"Time Series FX ({timeframe})" if timeframe != '1d' else "Time Series FX (Daily)"
-        
-        if time_series_key in data:
-            df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
-            df = df.rename(columns={
-                '1. open': 'open',
-                '2. high': 'high',
-                '3. low': 'low',
-                '4. close': 'close'
-            })
-            df = df.astype(float)
-            df.index = pd.to_datetime(df.index)
-            df = df.sort_index()
-            df['volume'] = 0
-            df = df.reset_index()
-            df = df.rename(columns={'index': 'timestamp'})
-            df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-            return df.tail(limit)
+        print(f"Finnhub error for {symbol}: {data.get('s')}")
+        return None
         
     except Exception as e:
-        print(f"Alpha Vantage error: {e}")
-
-    print(f"All data sources failed for {symbol}")
-    return None
+        print(f"Finnhub request failed: {e}")
+        return None
 
 # Fetch market data with retry mechanism
 def fetch_data(symbol, timeframe, limit=200, source='ccxt'):

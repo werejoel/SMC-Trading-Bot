@@ -1,199 +1,229 @@
 timestamp,symbol,signal_type,entry_price,stop_loss,take_profit,confidence,reason,risk_reward_ratio
-2025-03-21 07:49:05,XRP/USDT,long,2.3806,2.382576,2.376648,high,Failed breakout at liquidity low,2.0
-2025-03-21 08:01:09,SOL/USDT,short,127.03,130.1688,123.33,high,Price at supply zone with bearish confirmation,1.1787944437364548
-2025-03-21 08:01:09,SOL/USDT,short,127.03,131.4111,120.86999999999998,high,Price at supply zone with bearish confirmation,1.4060395791011435
-2025-03-21 08:01:09,SOL/USDT,long,127.03,129.7912,121.5076,medium,Failed breakout at liquidity low,2.0
-2025-03-21 08:01:20,ADA/USDT,short,0.7097,0.731139,0.6813,high,Price at supply zone with bearish confirmation,1.3246886515229257
-2025-03-21 08:01:20,ADA/USDT,long,0.7097,0.716282,0.696536,high,Failed breakout at liquidity low,2.0
-2025-03-21 08:18:41,XRP/USDT,short,2.3838,2.4174,2.3166,medium,Failed breakout at liquidity high,2.0
-2025-03-21 08:18:41,XRP/USDT,long,2.3838,2.382576,2.386248,high,Failed breakout at liquidity low,2.0
-2025-03-21 08:21:56,XRP/USDT,long,2.3807,2.382576,2.3769480000000005,high,Failed breakout at liquidity low,2.0
-2025-03-21 08:23:10,SOL/USDT,short,126.46,130.1688,121.62,high,Price at supply zone with bearish confirmation,1.3050043140638452
-2025-03-21 08:23:10,SOL/USDT,short,126.46,128.1791,125.56,high,Price at supply zone with bearish confirmation,0.5235297539410154
-2025-03-21 08:23:10,SOL/USDT,long,126.46,129.7912,119.79759999999996,medium,Failed breakout at liquidity low,2.0
-2025-03-21 08:23:21,ADA/USDT,long,0.7054,0.716282,0.6836360000000001,high,Failed breakout at liquidity low,2.0
-2025-03-21 08:23:21,ADA/USDT,long,0.7054,0.6977599999999999,0.7206800000000002,high,Failed breakout at liquidity low,2.0
-2025-03-21 08:31:31,XRP/USDT,short,2.3857,2.4174,2.3223,medium,Failed breakout at liquidity high,2.0
-2025-03-21 08:31:31,XRP/USDT,long,2.3857,2.382576,2.391948,high,Failed breakout at liquidity low,2.0
-2025-03-21 09:18:44,XRP/USDT,long,2.3725,2.382576,2.3523480000000005,high,Failed breakout at liquidity low,2.0
-2025-03-21 09:18:44,XRP/USDT,long,2.3725,2.34122,2.4350600000000004,high,Failed breakout at liquidity low,2.0
-2025-03-21 09:21:29,SOL/USDT,short,125.03,128.1791,121.27,high,Price at supply zone with bearish confirmation,1.1939919342034186
-2025-03-21 09:41:19,ETH/USDT,short,1960.62,1984.5528,1912.7544,high,Failed breakout at liquidity high,2.0
-2025-03-21 09:47:17,ETH/USDT,short,1963.26,1984.5528,1920.6744,high,Failed breakout at liquidity high,2.0
-2025-03-21 09:47:18,XRP/USDT,short,2.3868,2.4174,2.3256,medium,Failed breakout at liquidity high,2.0
-2025-03-21 09:47:18,XRP/USDT,long,2.3868,2.382576,2.3952480000000005,high,Failed breakout at liquidity low,2.0
-2025-03-21 09:47:19,SOL/USDT,short,125.9,128.1791,123.88000000000002,high,Price at supply zone with bearish confirmation,0.8863147733754474
-2025-03-21 09:47:19,SOL/USDT,long,125.9,129.7912,118.1176,medium,Failed breakout at liquidity low,2.0
-2025-03-21 09:47:19,SOL/USDT,long,125.9,124.117,129.466,medium,Failed breakout at liquidity low,2.0
-2025-03-21 09:47:21,ADA/USDT,long,0.7084,0.716282,0.6926360000000001,high,Failed breakout at liquidity low,2.0
-2025-03-21 09:47:21,ADA/USDT,long,0.7084,0.6977599999999999,0.7296800000000002,high,Failed breakout at liquidity low,2.0
-2025-03-21 09:49:03,ETH/USDT,short,1963.75,2024.242,1882.85,high,Price at supply zone with bearish confirmation,1.3373669245520092
-2025-03-21 09:49:03,ETH/USDT,short,1963.75,1984.5528,1922.1444,high,Failed breakout at liquidity high,2.0
-2025-03-21 09:50:59,XRP/USDT,long,2.3905,2.382576,2.406348,high,Failed breakout at liquidity low,2.0
-2025-03-21 11:24:30,ETH/USDT,short,1967.16,2024.242,1893.08,high,Price at supply zone with bearish confirmation,1.297782137976947
-2025-03-21 11:32:08,ETH/USDT,short,1970.01,2024.242,1901.63,high,Price at supply zone with bearish confirmation,1.2608791857206103
-2025-03-21 11:32:17,XRP/USDT,long,2.4114,2.382576,2.4690480000000004,high,Failed breakout at liquidity low,2.0
-2025-03-21 11:32:28,SOL/USDT,short,126.6,130.1688,122.04,high,Price at supply zone with bearish confirmation,1.2777404169468698
-2025-03-21 11:32:28,SOL/USDT,short,126.6,131.4111,119.57999999999996,high,Price at supply zone with bearish confirmation,1.4591257716530572
-2025-03-21 11:32:28,SOL/USDT,long,126.6,129.7912,120.21759999999998,medium,Failed breakout at liquidity low,2.0
-2025-03-21 11:32:44,ADA/USDT,short,0.7121,0.731139,0.6884999999999999,high,Price at supply zone with bearish confirmation,1.2395609013078437
-2025-03-21 11:32:44,ADA/USDT,long,0.7121,0.716282,0.7037359999999999,high,Failed breakout at liquidity low,2.0
-2025-03-21 11:44:53,ETH/USDT,short,1974.24,2024.242,1914.32,high,Price at supply zone with bearish confirmation,1.198352065917366
-2025-03-21 11:45:18,XRP/USDT,long,2.4139,2.382576,2.476548,high,Failed breakout at liquidity low,2.0
-2025-03-21 11:45:54,SOL/USDT,short,128.85,131.4111,126.32999999999996,high,Price at supply zone with bearish confirmation,0.9839522080356208
-2025-03-21 11:45:54,SOL/USDT,long,128.85,129.7912,126.96759999999998,medium,Failed breakout at liquidity low,2.0
-2025-03-21 12:03:33,ETH/USDT,short,1969.21,2024.242,1899.23,high,Price at supply zone with bearish confirmation,1.271623782526532
-2025-03-21 12:03:47,XRP/USDT,short,2.3981,2.4174,2.3595,medium,Failed breakout at liquidity high,2.0
-2025-03-21 12:03:47,XRP/USDT,long,2.3981,2.382576,2.429148,high,Failed breakout at liquidity low,2.0
-2025-03-21 12:04:04,SOL/USDT,short,127.43,130.1688,124.53000000000004,high,Price at supply zone with bearish confirmation,1.058857893968154
-2025-03-21 12:04:04,SOL/USDT,short,127.43,131.4111,122.07,high,Price at supply zone with bearish confirmation,1.3463615583632706
-2025-03-21 12:04:04,SOL/USDT,long,127.43,129.7912,122.7076,medium,Failed breakout at liquidity low,2.0
-2025-03-21 12:04:22,ADA/USDT,short,0.7114,0.731139,0.6864000000000001,high,Price at supply zone with bearish confirmation,1.266528192917573
-2025-03-21 12:04:22,ADA/USDT,long,0.7114,0.716282,0.7016360000000001,high,Failed breakout at liquidity low,2.0
-2025-03-21 12:05:21,ETH/USDT,short,1968.68,2024.242,1897.64,high,Price at supply zone with bearish confirmation,1.2785716856844622
-2025-03-21 12:10:57,ETH/USDT,short,1970.4,2024.242,1902.8,high,Price at supply zone with bearish confirmation,1.255525426247169
-2025-03-21 12:14:15,ETH/USDT,short,1970.52,2024.242,1903.16,high,Price at supply zone with bearish confirmation,1.2538624771974267
-2025-03-21 12:14:32,XRP/USDT,short,2.4044,2.4174,2.378399999999999,medium,Failed breakout at liquidity high,2.0
-2025-03-21 12:14:32,XRP/USDT,long,2.4044,2.382576,2.448048,high,Failed breakout at liquidity low,2.0
-2025-03-21 12:15:34,SOL/USDT,short,127.9,130.1688,125.94000000000004,high,Price at supply zone with bearish confirmation,0.8638928067700902
-2025-03-21 12:15:34,SOL/USDT,short,127.9,131.4111,123.48,high,Price at supply zone with bearish confirmation,1.2588647432428632
-2025-03-21 12:15:34,SOL/USDT,long,127.9,129.7912,124.1176,medium,Failed breakout at liquidity low,2.0
-2025-03-21 12:17:04,ADA/USDT,short,0.7143,0.731139,0.6951000000000002,high,Price at supply zone with bearish confirmation,1.140210226260464
-2025-03-21 12:17:04,ADA/USDT,long,0.7143,0.716282,0.7103360000000002,high,Failed breakout at liquidity low,2.0
-2025-03-21 12:22:12,ETH/USDT,short,1973.23,2024.242,1911.29,high,Price at supply zone with bearish confirmation,1.2142241041323634
-2025-03-21 23:50:48,BTC/USDT,long,84341.17,82136.9458,88749.61839999999,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-21 23:50:50,ETH/USDT,long,1989.58,1926.3566,2116.0268,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-21 23:50:50,ETH/USDT,long,1989.58,1934.3338,2100.0724,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-21 23:55:16,XRP/USDT,long,2.4044,2.34122,2.53076,medium,Bullish bullish_engulfing pattern at support in bullish trend,2.0
-2025-03-21 23:57:20,SOL/USDT,long,129.37,125.4204,137.2692,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 00:04:40,BTC/USDT,long,84379.98,82136.9458,88866.04839999999,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 00:04:42,ETH/USDT,long,1990.6,1926.3566,2119.0868,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 00:04:42,ETH/USDT,long,1990.6,1934.3338,2103.1324,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 00:04:42,ETH/USDT,long,1990.6,1919.4966,2132.8068,medium,Bullish bullish_engulfing pattern at support in bullish trend,2.0
-2025-03-22 00:05:44,XRP/USDT,long,2.4061,2.34122,2.53586,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
-2025-03-22 00:06:26,SOL/USDT,long,129.38,125.4204,137.29919999999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 00:10:00,BTC/USDT,long,84348.94,82136.9458,88772.9284,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 00:10:02,ETH/USDT,long,1988.16,1926.3566,2111.7668000000003,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 00:10:02,ETH/USDT,long,1988.16,1934.3338,2095.8124000000007,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 00:11:16,XRP/USDT,long,2.4047,2.34122,2.5316600000000005,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
-2025-03-22 00:24:16,XRP/USDT,long,2.4033,2.34122,2.527460000000001,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
-2025-03-22 02:58:33,BTC/USDT,long,84395.59,82136.9458,88912.87839999999,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 02:58:33,BTC/USDT,long,84395.59,82490.4318,88205.90639999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 02:58:33,BTC/USDT,long,84395.59,82118.28659999999,88950.1968,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
-2025-03-22 02:58:35,ETH/USDT,long,1995.26,1926.3566,2133.0668,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 02:58:35,ETH/USDT,long,1995.26,1934.3338,2117.1124,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 02:58:35,ETH/USDT,long,1995.26,1947.3874,2091.0052,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 02:58:35,ETH/USDT,long,1995.26,1919.4966,2146.7868,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
-2025-03-22 03:06:28,BTC/USDT,long,84378.22,82136.9458,88860.7684,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:06:28,BTC/USDT,long,84378.22,82490.4318,88153.79639999999,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:08:38,ADA/USDT,short,0.7125,0.7422540000000001,0.6529919999999999,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
-2025-03-22 03:09:27,BTC/USDT,long,84400.67,82136.9458,88928.11839999999,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:09:27,BTC/USDT,long,84400.67,82490.4318,88221.14639999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:09:36,ETH/USDT,long,1995.4,1926.3566,2133.4868,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:09:36,ETH/USDT,long,1995.4,1934.3338,2117.5324000000005,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:09:36,ETH/USDT,long,1995.4,1947.3874,2091.4252,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:29:31,BTC/USDT,long,84380.01,82136.9458,88866.13839999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:29:31,BTC/USDT,long,84380.01,82490.4318,88159.16639999997,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:30:27,ETH/USDT,long,1994.41,1926.3566,2130.5168000000003,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:30:27,ETH/USDT,long,1994.41,1934.3338,2114.5624000000007,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:30:27,ETH/USDT,long,1994.41,1947.3874,2088.4552000000003,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:31:01,XRP/USDT,short,2.4016,2.523174,2.1584520000000005,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-22 03:31:03,SOL/USDT,long,130.99,125.4204,142.12920000000005,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:31:03,SOL/USDT,long,130.99,126.2926,140.3848,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:33:57,BTC/USDT,long,84360.0,82136.9458,88806.1084,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:33:57,BTC/USDT,long,84360.0,82490.4318,88099.13639999999,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:34:17,ETH/USDT,long,1995.49,1926.3566,2133.7568,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:34:17,ETH/USDT,long,1995.49,1934.3338,2117.8024000000005,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:34:17,ETH/USDT,long,1995.49,1947.3874,2091.6952,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 03:34:35,SOL/USDT,long,131.06,126.2926,140.5948,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 13:40:23,BTC/USDT,long,84156.44,82136.9458,88195.4284,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 13:45:16,ETH/USDT,long,1999.64,1926.3566,2146.2068,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 13:45:16,ETH/USDT,long,1999.64,1934.3338,2130.2524000000003,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 13:48:33,XRP/USDT,long,2.3786,2.319464,2.496872,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 13:58:10,BTC/USDT,long,83989.13,82136.9458,87693.49840000001,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 14:07:38,BTC/USDT,long,83934.08,82136.9458,87528.3484,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 14:07:46,ETH/USDT,long,1992.63,1926.3566,2125.1768,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 14:07:46,ETH/USDT,long,1992.63,1934.3338,2109.222400000001,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 14:08:02,SOL/USDT,short,129.21,132.8754,121.8792,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-22 14:27:17,BTC/USDT,long,84024.58,82136.9458,87799.8484,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 14:27:31,ETH/USDT,long,1990.06,1926.3566,2117.4668,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-22 14:27:31,ETH/USDT,long,1990.06,1934.3338,2101.5124,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:37:31,BTC/USDT,long,88182.19,85018.038,94510.494,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:37:31,BTC/USDT,long,88182.19,85383.2056,93780.1588,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:37:31,BTC/USDT,long,88182.19,85395.82800000001,93754.914,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:42:29,SOL/USDT,long,142.36,136.8864,153.30720000000002,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:42:29,SOL/USDT,long,142.36,138.3662,150.34760000000006,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:44:01,ADA/USDT,long,0.7377,0.707168,0.798764,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:44:01,ADA/USDT,long,0.7377,0.694036,0.8250280000000001,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
-2025-03-24 12:44:34,BTC/USDT,long,88040.52,85018.038,94085.484,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:44:34,BTC/USDT,long,88040.52,85383.2056,93355.1488,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:44:34,BTC/USDT,long,88040.52,85395.82800000001,93329.904,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:45:00,SOL/USDT,long,142.42,136.8864,153.48719999999994,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:45:00,SOL/USDT,long,142.42,138.3662,150.52759999999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:51:17,BTC/USDT,long,88197.64,85018.038,94556.844,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:51:17,BTC/USDT,long,88197.64,85383.2056,93826.5088,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:51:17,BTC/USDT,long,88197.64,85395.82800000001,93801.26399999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:52:10,SOL/USDT,long,142.43,136.8864,153.5172,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:52:10,SOL/USDT,long,142.43,138.3662,150.55760000000004,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:52:56,BTC/USDT,long,88131.39,85018.038,94358.094,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:52:56,BTC/USDT,long,88131.39,85383.2056,93627.7588,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:52:56,BTC/USDT,long,88131.39,85395.82800000001,93602.51399999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:57:25,BTC/USDT,long,88204.01,85018.038,94575.95399999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:57:25,BTC/USDT,long,88204.01,85383.2056,93845.61879999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 12:57:25,BTC/USDT,long,88204.01,85395.82800000001,93820.37399999997,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:02:36,BTC/USDT,long,88218.84,85018.038,94620.444,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:02:36,BTC/USDT,long,88218.84,85383.2056,93890.1088,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:02:36,BTC/USDT,long,88218.84,85395.82800000001,93864.86399999996,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:08:18,SOL/USDT,long,142.43,136.8864,153.5172,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:08:18,SOL/USDT,long,142.43,138.3662,150.55760000000004,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:20:47,XRP/USDT,long,2.4736,2.368464,2.683872,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:21:19,SOL/USDT,long,142.92,136.8864,154.98719999999994,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:21:19,SOL/USDT,long,142.92,138.3662,152.02759999999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 13:21:19,SOL/USDT,long,142.92,132.25099999999998,164.258,medium,Bullish bullish_engulfing pattern at support in bullish trend,2.0
-2025-03-24 14:08:44,BTC/USDT,long,87979.39,85018.038,93902.094,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 14:08:44,BTC/USDT,long,87979.39,85383.2056,93171.7588,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 14:08:44,BTC/USDT,long,87979.39,85395.82800000001,93146.51399999998,high,Price at unmitigated bullish order block in bullish trend,2.0
-2025-03-24 14:22:45,ETH/USDT,short,2085.29,2146.1922,1963.4856,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-24 14:24:13,SOL/USDT,short,142.62,147.85920000000002,132.14159999999998,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-24 14:28:22,ETH/USDT,short,2090.42,2146.1922,1978.8756000000003,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-24 14:29:14,XRP/USDT,short,2.4673,2.5316400000000003,2.338619999999999,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-24 14:42:48,XRP/USDT,short,2.4599,2.5316400000000003,2.31642,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-24 14:54:14,XRP/USDT,short,2.4615,2.5316400000000003,2.3212199999999994,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-24 15:06:15,BTC/USDT,short,87999.98,85962.61140000001,92074.71719999996,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-24 15:06:43,ETH/USDT,short,2083.0,2146.1922,1956.6156,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-24 15:07:24,XRP/USDT,short,2.4561,2.5316400000000003,2.30502,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-24 15:07:24,XRP/USDT,short,2.4561,2.44035,2.4876000000000005,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-24 15:08:11,SOL/USDT,short,141.3,147.85920000000002,128.1816,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-24 15:09:28,ADA/USDT,short,0.735,0.760104,0.684792,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-24 15:09:28,ADA/USDT,short,0.735,0.7295039999999999,0.7459920000000001,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 08:42:40,SOL/USDT,short,145.07,142.14720000000003,150.91559999999993,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 13:57:48,BTC/USDT,short,87838.61,90310.4226,82894.98479999999,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 13:57:48,BTC/USDT,short,87838.61,89948.4858,83618.85840000001,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 14:10:35,BTC/USDT,short,87891.3,90310.4226,83053.0548,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 14:10:35,BTC/USDT,short,87891.3,89948.4858,83776.92840000002,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 14:20:01,SOL/USDT,short,145.01,142.14720000000003,150.73559999999992,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 14:45:56,ADA/USDT,short,0.7465,0.773364,0.692772,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 14:53:45,BTC/USDT,short,87820.81,90310.4226,82841.58479999998,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 15:15:51,BTC/USDT,short,87711.88,90310.4226,82514.7948,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 15:15:51,BTC/USDT,short,87711.88,89948.4858,83238.66840000002,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 15:16:07,XRP/USDT,short,2.4426,2.527866,2.2720680000000004,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 15:16:07,XRP/USDT,short,2.4426,2.5316400000000003,2.26452,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 15:16:15,SOL/USDT,short,143.13,147.85920000000002,133.67159999999996,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 15:22:57,BTC/USDT,short,87504.29,90310.4226,81892.02479999997,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 15:22:57,BTC/USDT,short,87504.29,89948.4858,82615.89839999999,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 15:23:07,XRP/USDT,short,2.4393,2.527866,2.2621679999999995,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 15:23:07,XRP/USDT,short,2.4393,2.5316400000000003,2.2546199999999987,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 15:23:16,SOL/USDT,short,142.86,147.85920000000002,132.8616,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 16:03:47,BTC/USDT,short,87500.01,90310.4226,81879.18479999997,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 16:03:47,BTC/USDT,short,87500.01,89948.4858,82603.0584,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-25 16:05:02,XRP/USDT,short,2.4401,2.527866,2.2645680000000006,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 16:05:02,XRP/USDT,short,2.4401,2.5316400000000003,2.25702,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 16:13:29,BTC/USDT,short,87238.99,90310.4226,81096.1248,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 16:13:42,XRP/USDT,short,2.4402,2.527866,2.264868,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-25 16:13:42,XRP/USDT,short,2.4402,2.5316400000000003,2.257319999999999,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-26 00:58:06,BTC/USDT,short,88175.39,90310.4226,83905.32479999999,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-26 01:41:43,BTC/USDT,short,88072.15,90310.4226,83595.60479999997,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-26 01:41:43,BTC/USDT,short,88072.15,89948.4858,84319.47839999999,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
-2025-03-26 01:41:54,XRP/USDT,short,2.4715,2.528988,2.3565239999999994,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-26 02:10:05,ADA/USDT,short,0.7691,0.789888,0.727524,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-26 02:10:05,ADA/USDT,short,0.7691,0.74919,0.80892,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
+21/03/2025 7:49,XRP/USDT,long,2.3806,2.382576,2.376648,high,Failed breakout at liquidity low,2.0
+21/03/2025 8:01,SOL/USDT,short,127.03,130.1688,123.33,high,Price at supply zone with bearish confirmation,1.178794444
+21/03/2025 8:01,SOL/USDT,short,127.03,131.4111,120.87,high,Price at supply zone with bearish confirmation,1.406039579
+21/03/2025 8:01,SOL/USDT,long,127.03,129.7912,121.5076,medium,Failed breakout at liquidity low,2.0
+21/03/2025 8:01,ADA/USDT,short,0.7097,0.731139,0.6813,high,Price at supply zone with bearish confirmation,1.324688652
+21/03/2025 8:01,ADA/USDT,long,0.7097,0.716282,0.696536,high,Failed breakout at liquidity low,2.0
+21/03/2025 8:18,XRP/USDT,short,2.3838,2.4174,2.3166,medium,Failed breakout at liquidity high,2.0
+21/03/2025 8:18,XRP/USDT,long,2.3838,2.382576,2.386248,high,Failed breakout at liquidity low,2.0
+21/03/2025 8:21,XRP/USDT,long,2.3807,2.382576,2.376948,high,Failed breakout at liquidity low,2.0
+21/03/2025 8:23,SOL/USDT,short,126.46,130.1688,121.62,high,Price at supply zone with bearish confirmation,1.305004314
+21/03/2025 8:23,SOL/USDT,short,126.46,128.1791,125.56,high,Price at supply zone with bearish confirmation,0.523529754
+21/03/2025 8:23,SOL/USDT,long,126.46,129.7912,119.7976,medium,Failed breakout at liquidity low,2.0
+21/03/2025 8:23,ADA/USDT,long,0.7054,0.716282,0.683636,high,Failed breakout at liquidity low,2.0
+21/03/2025 8:23,ADA/USDT,long,0.7054,0.69776,0.72068,high,Failed breakout at liquidity low,2.0
+21/03/2025 8:31,XRP/USDT,short,2.3857,2.4174,2.3223,medium,Failed breakout at liquidity high,2.0
+21/03/2025 8:31,XRP/USDT,long,2.3857,2.382576,2.391948,high,Failed breakout at liquidity low,2.0
+21/03/2025 9:18,XRP/USDT,long,2.3725,2.382576,2.352348,high,Failed breakout at liquidity low,2.0
+21/03/2025 9:18,XRP/USDT,long,2.3725,2.34122,2.43506,high,Failed breakout at liquidity low,2.0
+21/03/2025 9:21,SOL/USDT,short,125.03,128.1791,121.27,high,Price at supply zone with bearish confirmation,1.193991934
+21/03/2025 9:41,ETH/USDT,short,1960.62,1984.5528,1912.7544,high,Failed breakout at liquidity high,2.0
+21/03/2025 9:47,ETH/USDT,short,1963.26,1984.5528,1920.6744,high,Failed breakout at liquidity high,2.0
+21/03/2025 9:47,XRP/USDT,short,2.3868,2.4174,2.3256,medium,Failed breakout at liquidity high,2.0
+21/03/2025 9:47,XRP/USDT,long,2.3868,2.382576,2.395248,high,Failed breakout at liquidity low,2.0
+21/03/2025 9:47,SOL/USDT,short,125.9,128.1791,123.88,high,Price at supply zone with bearish confirmation,0.886314773
+21/03/2025 9:47,SOL/USDT,long,125.9,129.7912,118.1176,medium,Failed breakout at liquidity low,2.0
+21/03/2025 9:47,SOL/USDT,long,125.9,124.117,129.466,medium,Failed breakout at liquidity low,2.0
+21/03/2025 9:47,ADA/USDT,long,0.7084,0.716282,0.692636,high,Failed breakout at liquidity low,2.0
+21/03/2025 9:47,ADA/USDT,long,0.7084,0.69776,0.72968,high,Failed breakout at liquidity low,2.0
+21/03/2025 9:49,ETH/USDT,short,1963.75,2024.242,1882.85,high,Price at supply zone with bearish confirmation,1.337366925
+21/03/2025 9:49,ETH/USDT,short,1963.75,1984.5528,1922.1444,high,Failed breakout at liquidity high,2.0
+21/03/2025 9:50,XRP/USDT,long,2.3905,2.382576,2.406348,high,Failed breakout at liquidity low,2.0
+21/03/2025 11:24,ETH/USDT,short,1967.16,2024.242,1893.08,high,Price at supply zone with bearish confirmation,1.297782138
+21/03/2025 11:32,ETH/USDT,short,1970.01,2024.242,1901.63,high,Price at supply zone with bearish confirmation,1.260879186
+21/03/2025 11:32,XRP/USDT,long,2.4114,2.382576,2.469048,high,Failed breakout at liquidity low,2.0
+21/03/2025 11:32,SOL/USDT,short,126.6,130.1688,122.04,high,Price at supply zone with bearish confirmation,1.277740417
+21/03/2025 11:32,SOL/USDT,short,126.6,131.4111,119.58,high,Price at supply zone with bearish confirmation,1.459125772
+21/03/2025 11:32,SOL/USDT,long,126.6,129.7912,120.2176,medium,Failed breakout at liquidity low,2.0
+21/03/2025 11:32,ADA/USDT,short,0.7121,0.731139,0.6885,high,Price at supply zone with bearish confirmation,1.239560901
+21/03/2025 11:32,ADA/USDT,long,0.7121,0.716282,0.703736,high,Failed breakout at liquidity low,2.0
+21/03/2025 11:44,ETH/USDT,short,1974.24,2024.242,1914.32,high,Price at supply zone with bearish confirmation,1.198352066
+21/03/2025 11:45,XRP/USDT,long,2.4139,2.382576,2.476548,high,Failed breakout at liquidity low,2.0
+21/03/2025 11:45,SOL/USDT,short,128.85,131.4111,126.33,high,Price at supply zone with bearish confirmation,0.983952208
+21/03/2025 11:45,SOL/USDT,long,128.85,129.7912,126.9676,medium,Failed breakout at liquidity low,2.0
+21/03/2025 12:03,ETH/USDT,short,1969.21,2024.242,1899.23,high,Price at supply zone with bearish confirmation,1.271623783
+21/03/2025 12:03,XRP/USDT,short,2.3981,2.4174,2.3595,medium,Failed breakout at liquidity high,2.0
+21/03/2025 12:03,XRP/USDT,long,2.3981,2.382576,2.429148,high,Failed breakout at liquidity low,2.0
+21/03/2025 12:04,SOL/USDT,short,127.43,130.1688,124.53,high,Price at supply zone with bearish confirmation,1.058857894
+21/03/2025 12:04,SOL/USDT,short,127.43,131.4111,122.07,high,Price at supply zone with bearish confirmation,1.346361558
+21/03/2025 12:04,SOL/USDT,long,127.43,129.7912,122.7076,medium,Failed breakout at liquidity low,2.0
+21/03/2025 12:04,ADA/USDT,short,0.7114,0.731139,0.6864,high,Price at supply zone with bearish confirmation,1.266528193
+21/03/2025 12:04,ADA/USDT,long,0.7114,0.716282,0.701636,high,Failed breakout at liquidity low,2.0
+21/03/2025 12:05,ETH/USDT,short,1968.68,2024.242,1897.64,high,Price at supply zone with bearish confirmation,1.278571686
+21/03/2025 12:10,ETH/USDT,short,1970.4,2024.242,1902.8,high,Price at supply zone with bearish confirmation,1.255525426
+21/03/2025 12:14,ETH/USDT,short,1970.52,2024.242,1903.16,high,Price at supply zone with bearish confirmation,1.253862477
+21/03/2025 12:14,XRP/USDT,short,2.4044,2.4174,2.3784,medium,Failed breakout at liquidity high,2.0
+21/03/2025 12:14,XRP/USDT,long,2.4044,2.382576,2.448048,high,Failed breakout at liquidity low,2.0
+21/03/2025 12:15,SOL/USDT,short,127.9,130.1688,125.94,high,Price at supply zone with bearish confirmation,0.863892807
+21/03/2025 12:15,SOL/USDT,short,127.9,131.4111,123.48,high,Price at supply zone with bearish confirmation,1.258864743
+21/03/2025 12:15,SOL/USDT,long,127.9,129.7912,124.1176,medium,Failed breakout at liquidity low,2.0
+21/03/2025 12:17,ADA/USDT,short,0.7143,0.731139,0.6951,high,Price at supply zone with bearish confirmation,1.140210226
+21/03/2025 12:17,ADA/USDT,long,0.7143,0.716282,0.710336,high,Failed breakout at liquidity low,2.0
+21/03/2025 12:22,ETH/USDT,short,1973.23,2024.242,1911.29,high,Price at supply zone with bearish confirmation,1.214224104
+21/03/2025 23:50,BTC/USDT,long,84341.17,82136.9458,88749.6184,high,Price at unmitigated bullish order block in bullish trend,2.0
+21/03/2025 23:50,ETH/USDT,long,1989.58,1926.3566,2116.0268,high,Price at unmitigated bullish order block in bullish trend,2.0
+21/03/2025 23:50,ETH/USDT,long,1989.58,1934.3338,2100.0724,high,Price at unmitigated bullish order block in bullish trend,2.0
+21/03/2025 23:55,XRP/USDT,long,2.4044,2.34122,2.53076,medium,Bullish bullish_engulfing pattern at support in bullish trend,2.0
+21/03/2025 23:57,SOL/USDT,long,129.37,125.4204,137.2692,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 0:04,BTC/USDT,long,84379.98,82136.9458,88866.0484,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 0:04,ETH/USDT,long,1990.6,1926.3566,2119.0868,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 0:04,ETH/USDT,long,1990.6,1934.3338,2103.1324,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 0:04,ETH/USDT,long,1990.6,1919.4966,2132.8068,medium,Bullish bullish_engulfing pattern at support in bullish trend,2.0
+22/03/2025 0:05,XRP/USDT,long,2.4061,2.34122,2.53586,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+22/03/2025 0:06,SOL/USDT,long,129.38,125.4204,137.2992,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 0:10,BTC/USDT,long,84348.94,82136.9458,88772.9284,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 0:10,ETH/USDT,long,1988.16,1926.3566,2111.7668,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 0:10,ETH/USDT,long,1988.16,1934.3338,2095.8124,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 0:11,XRP/USDT,long,2.4047,2.34122,2.53166,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+22/03/2025 0:24,XRP/USDT,long,2.4033,2.34122,2.52746,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+22/03/2025 2:58,BTC/USDT,long,84395.59,82136.9458,88912.8784,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 2:58,BTC/USDT,long,84395.59,82490.4318,88205.9064,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 2:58,BTC/USDT,long,84395.59,82118.2866,88950.1968,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+22/03/2025 2:58,ETH/USDT,long,1995.26,1926.3566,2133.0668,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 2:58,ETH/USDT,long,1995.26,1934.3338,2117.1124,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 2:58,ETH/USDT,long,1995.26,1947.3874,2091.0052,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 2:58,ETH/USDT,long,1995.26,1919.4966,2146.7868,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+22/03/2025 3:06,BTC/USDT,long,84378.22,82136.9458,88860.7684,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:06,BTC/USDT,long,84378.22,82490.4318,88153.7964,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:08,ADA/USDT,short,0.7125,0.742254,0.652992,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
+22/03/2025 3:09,BTC/USDT,long,84400.67,82136.9458,88928.1184,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:09,BTC/USDT,long,84400.67,82490.4318,88221.1464,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:09,ETH/USDT,long,1995.4,1926.3566,2133.4868,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:09,ETH/USDT,long,1995.4,1934.3338,2117.5324,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:09,ETH/USDT,long,1995.4,1947.3874,2091.4252,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:29,BTC/USDT,long,84380.01,82136.9458,88866.1384,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:29,BTC/USDT,long,84380.01,82490.4318,88159.1664,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:30,ETH/USDT,long,1994.41,1926.3566,2130.5168,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:30,ETH/USDT,long,1994.41,1934.3338,2114.5624,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:30,ETH/USDT,long,1994.41,1947.3874,2088.4552,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:31,XRP/USDT,short,2.4016,2.523174,2.158452,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+22/03/2025 3:31,SOL/USDT,long,130.99,125.4204,142.1292,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:31,SOL/USDT,long,130.99,126.2926,140.3848,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:33,BTC/USDT,long,84360.0,82136.9458,88806.1084,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:33,BTC/USDT,long,84360.0,82490.4318,88099.1364,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:34,ETH/USDT,long,1995.49,1926.3566,2133.7568,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:34,ETH/USDT,long,1995.49,1934.3338,2117.8024,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:34,ETH/USDT,long,1995.49,1947.3874,2091.6952,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 3:34,SOL/USDT,long,131.06,126.2926,140.5948,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 13:40,BTC/USDT,long,84156.44,82136.9458,88195.4284,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 13:45,ETH/USDT,long,1999.64,1926.3566,2146.2068,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 13:45,ETH/USDT,long,1999.64,1934.3338,2130.2524,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 13:48,XRP/USDT,long,2.3786,2.319464,2.496872,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 13:58,BTC/USDT,long,83989.13,82136.9458,87693.4984,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 14:07,BTC/USDT,long,83934.08,82136.9458,87528.3484,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 14:07,ETH/USDT,long,1992.63,1926.3566,2125.1768,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 14:07,ETH/USDT,long,1992.63,1934.3338,2109.2224,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 14:08,SOL/USDT,short,129.21,132.8754,121.8792,high,Price at unmitigated bearish order block in bearish trend,2.0
+22/03/2025 14:27,BTC/USDT,long,84024.58,82136.9458,87799.8484,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 14:27,ETH/USDT,long,1990.06,1926.3566,2117.4668,high,Price at unmitigated bullish order block in bullish trend,2.0
+22/03/2025 14:27,ETH/USDT,long,1990.06,1934.3338,2101.5124,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:37,BTC/USDT,long,88182.19,85018.038,94510.494,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:37,BTC/USDT,long,88182.19,85383.2056,93780.1588,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:37,BTC/USDT,long,88182.19,85395.828,93754.914,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:42,SOL/USDT,long,142.36,136.8864,153.3072,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:42,SOL/USDT,long,142.36,138.3662,150.3476,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:44,ADA/USDT,long,0.7377,0.707168,0.798764,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:44,ADA/USDT,long,0.7377,0.694036,0.825028,medium,Bullish three_white_soldiers pattern at support in bullish trend,2.0
+24/03/2025 12:44,BTC/USDT,long,88040.52,85018.038,94085.484,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:44,BTC/USDT,long,88040.52,85383.2056,93355.1488,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:44,BTC/USDT,long,88040.52,85395.828,93329.904,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:45,SOL/USDT,long,142.42,136.8864,153.4872,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:45,SOL/USDT,long,142.42,138.3662,150.5276,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:51,BTC/USDT,long,88197.64,85018.038,94556.844,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:51,BTC/USDT,long,88197.64,85383.2056,93826.5088,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:51,BTC/USDT,long,88197.64,85395.828,93801.264,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:52,SOL/USDT,long,142.43,136.8864,153.5172,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:52,SOL/USDT,long,142.43,138.3662,150.5576,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:52,BTC/USDT,long,88131.39,85018.038,94358.094,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:52,BTC/USDT,long,88131.39,85383.2056,93627.7588,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:52,BTC/USDT,long,88131.39,85395.828,93602.514,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:57,BTC/USDT,long,88204.01,85018.038,94575.954,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:57,BTC/USDT,long,88204.01,85383.2056,93845.6188,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 12:57,BTC/USDT,long,88204.01,85395.828,93820.374,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:02,BTC/USDT,long,88218.84,85018.038,94620.444,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:02,BTC/USDT,long,88218.84,85383.2056,93890.1088,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:02,BTC/USDT,long,88218.84,85395.828,93864.864,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:08,SOL/USDT,long,142.43,136.8864,153.5172,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:08,SOL/USDT,long,142.43,138.3662,150.5576,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:20,XRP/USDT,long,2.4736,2.368464,2.683872,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:21,SOL/USDT,long,142.92,136.8864,154.9872,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:21,SOL/USDT,long,142.92,138.3662,152.0276,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 13:21,SOL/USDT,long,142.92,132.251,164.258,medium,Bullish bullish_engulfing pattern at support in bullish trend,2.0
+24/03/2025 14:08,BTC/USDT,long,87979.39,85018.038,93902.094,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 14:08,BTC/USDT,long,87979.39,85383.2056,93171.7588,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 14:08,BTC/USDT,long,87979.39,85395.828,93146.514,high,Price at unmitigated bullish order block in bullish trend,2.0
+24/03/2025 14:22,ETH/USDT,short,2085.29,2146.1922,1963.4856,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+24/03/2025 14:24,SOL/USDT,short,142.62,147.8592,132.1416,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+24/03/2025 14:28,ETH/USDT,short,2090.42,2146.1922,1978.8756,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+24/03/2025 14:29,XRP/USDT,short,2.4673,2.53164,2.33862,high,Price at unmitigated bearish order block in bearish trend,2.0
+24/03/2025 14:42,XRP/USDT,short,2.4599,2.53164,2.31642,high,Price at unmitigated bearish order block in bearish trend,2.0
+24/03/2025 14:54,XRP/USDT,short,2.4615,2.53164,2.32122,high,Price at unmitigated bearish order block in bearish trend,2.0
+24/03/2025 15:06,BTC/USDT,short,87999.98,85962.6114,92074.7172,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+24/03/2025 15:06,ETH/USDT,short,2083.0,2146.1922,1956.6156,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+24/03/2025 15:07,XRP/USDT,short,2.4561,2.53164,2.30502,high,Price at unmitigated bearish order block in bearish trend,2.0
+24/03/2025 15:07,XRP/USDT,short,2.4561,2.44035,2.4876,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+24/03/2025 15:08,SOL/USDT,short,141.3,147.8592,128.1816,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+24/03/2025 15:09,ADA/USDT,short,0.735,0.760104,0.684792,high,Price at unmitigated bearish order block in bearish trend,2.0
+24/03/2025 15:09,ADA/USDT,short,0.735,0.729504,0.745992,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 8:42,SOL/USDT,short,145.07,142.1472,150.9156,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 13:57,BTC/USDT,short,87838.61,90310.4226,82894.9848,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 13:57,BTC/USDT,short,87838.61,89948.4858,83618.8584,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 14:10,BTC/USDT,short,87891.3,90310.4226,83053.0548,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 14:10,BTC/USDT,short,87891.3,89948.4858,83776.9284,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 14:20,SOL/USDT,short,145.01,142.1472,150.7356,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 14:45,ADA/USDT,short,0.7465,0.773364,0.692772,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 14:53,BTC/USDT,short,87820.81,90310.4226,82841.5848,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 15:15,BTC/USDT,short,87711.88,90310.4226,82514.7948,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 15:15,BTC/USDT,short,87711.88,89948.4858,83238.6684,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 15:16,XRP/USDT,short,2.4426,2.527866,2.272068,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 15:16,XRP/USDT,short,2.4426,2.53164,2.26452,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 15:16,SOL/USDT,short,143.13,147.8592,133.6716,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 15:22,BTC/USDT,short,87504.29,90310.4226,81892.0248,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 15:22,BTC/USDT,short,87504.29,89948.4858,82615.8984,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 15:23,XRP/USDT,short,2.4393,2.527866,2.262168,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 15:23,XRP/USDT,short,2.4393,2.53164,2.25462,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 15:23,SOL/USDT,short,142.86,147.8592,132.8616,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 16:03,BTC/USDT,short,87500.01,90310.4226,81879.1848,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 16:03,BTC/USDT,short,87500.01,89948.4858,82603.0584,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+25/03/2025 16:05,XRP/USDT,short,2.4401,2.527866,2.264568,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 16:05,XRP/USDT,short,2.4401,2.53164,2.25702,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 16:13,BTC/USDT,short,87238.99,90310.4226,81096.1248,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 16:13,XRP/USDT,short,2.4402,2.527866,2.264868,high,Price at unmitigated bearish order block in bearish trend,2.0
+25/03/2025 16:13,XRP/USDT,short,2.4402,2.53164,2.25732,high,Price at unmitigated bearish order block in bearish trend,2.0
+26/03/2025 0:58,BTC/USDT,short,88175.39,90310.4226,83905.3248,high,Price at unmitigated bearish order block in bearish trend,2.0
+26/03/2025 1:41,BTC/USDT,short,88072.15,90310.4226,83595.6048,high,Price at unmitigated bearish order block in bearish trend,2.0
+26/03/2025 1:41,BTC/USDT,short,88072.15,89948.4858,84319.4784,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+26/03/2025 1:41,XRP/USDT,short,2.4715,2.528988,2.356524,high,Price at unmitigated bearish order block in bearish trend,2.0
+26/03/2025 2:10,ADA/USDT,short,0.7691,0.789888,0.727524,high,Price at unmitigated bearish order block in bearish trend,2.0
+26/03/2025 2:10,ADA/USDT,short,0.7691,0.74919,0.80892,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
+2025-03-26 07:19:31,BTC/USDT,short,86998.0,90310.4226,80373.15479999999,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 09:37:50,ETH/USDT,short,2027.92,2098.7316,1886.2968,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 09:37:50,ETH/USDT,short,2027.92,2101.5876000000003,1880.5848,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
+2025-03-26 13:43:27,BTC/USDT,short,87363.44,89644.4136,82801.4928,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 13:43:27,BTC/USDT,short,87363.44,90310.4226,81469.4748,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:03:05,BTC/USDT,short,87099.99,89644.4136,82011.14280000002,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:03:05,BTC/USDT,short,87099.99,90310.4226,80679.1248,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:08:52,BTC/USDT,short,87113.93,89644.4136,82052.96279999998,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:08:52,BTC/USDT,short,87113.93,90310.4226,80720.94479999997,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:25:25,BTC/USDT,short,86835.66,89644.4136,81218.15280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:25:25,BTC/USDT,short,86835.66,90310.4226,79886.1348,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:29:51,BTC/USDT,short,86774.38,89644.4136,81034.31280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:29:51,BTC/USDT,short,86774.38,90310.4226,79702.2948,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:34:50,BTC/USDT,short,86914.02,89644.4136,81453.23280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:34:50,BTC/USDT,short,86914.02,90310.4226,80121.2148,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:44:24,BTC/USDT,short,86876.91,89644.4136,81341.90280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:44:24,BTC/USDT,short,86876.91,90310.4226,80009.8848,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:44:43,BTC/USDT,short,86880.43,89644.4136,81352.46279999998,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:44:43,BTC/USDT,short,86880.43,90310.4226,80020.44479999997,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:51:15,BTC/USDT,short,86945.66,89644.4136,81548.15280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:51:15,BTC/USDT,short,86945.66,90310.4226,80216.1348,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:52:59,BTC/USDT,short,87000.15,89644.4136,81711.62279999998,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 15:52:59,BTC/USDT,short,87000.15,90310.4226,80379.60479999997,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:00:34,BTC/USDT,short,86830.27,89644.4136,81201.98280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:00:34,BTC/USDT,short,86830.27,90310.4226,79869.9648,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:01:20,SOL/USDT,short,136.7,144.5034,121.09319999999995,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
+2025-03-26 16:06:13,BTC/USDT,short,86789.49,89644.4136,81079.64280000002,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:06:13,BTC/USDT,short,86789.49,90310.4226,79747.6248,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:53:16,BTC/USDT,short,86939.27,89644.4136,81528.98280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:53:16,BTC/USDT,short,86939.27,90310.4226,80196.9648,high,Price at unmitigated bearish order block in bearish trend,2.0
