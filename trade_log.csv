@@ -191,3 +191,9 @@ timestamp,symbol,signal_type,entry_price,stop_loss,take_profit,confidence,reason
 2025-03-25 16:13:29,BTC/USDT,short,87238.99,90310.4226,81096.1248,high,Price at unmitigated bearish order block in bearish trend,2.0
 2025-03-25 16:13:42,XRP/USDT,short,2.4402,2.527866,2.264868,high,Price at unmitigated bearish order block in bearish trend,2.0
 2025-03-25 16:13:42,XRP/USDT,short,2.4402,2.5316400000000003,2.257319999999999,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 00:58:06,BTC/USDT,short,88175.39,90310.4226,83905.32479999999,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 01:41:43,BTC/USDT,short,88072.15,90310.4226,83595.60479999997,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 01:41:43,BTC/USDT,short,88072.15,89948.4858,84319.47839999999,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+2025-03-26 01:41:54,XRP/USDT,short,2.4715,2.528988,2.3565239999999994,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 02:10:05,ADA/USDT,short,0.7691,0.789888,0.727524,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 02:10:05,ADA/USDT,short,0.7691,0.74919,0.80892,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
