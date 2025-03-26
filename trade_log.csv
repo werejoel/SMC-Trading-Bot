@@ -227,3 +227,5 @@ timestamp,symbol,signal_type,entry_price,stop_loss,take_profit,confidence,reason
 2025-03-26 16:06:13,BTC/USDT,short,86789.49,90310.4226,79747.6248,high,Price at unmitigated bearish order block in bearish trend,2.0
 2025-03-26 16:53:16,BTC/USDT,short,86939.27,89644.4136,81528.98280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
 2025-03-26 16:53:16,BTC/USDT,short,86939.27,90310.4226,80196.9648,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:53:28,ETH/USDT,short,2009.24,2098.7316,1830.2568,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:53:28,ETH/USDT,short,2009.24,2078.5764,1870.5672000000002,high,Price at unmitigated bearish order block in bearish trend,2.0
