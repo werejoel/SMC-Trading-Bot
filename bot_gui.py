@@ -110,9 +110,9 @@ class TradingBotGUI:
         symbols_frame = ttk.Frame(frame)
         symbols_frame.pack(fill=tk.X)
 
-        # Crypto pairs
+        # Crypto pairs - limited to BTC/USDT and XRP/USDT only
         self.crypto_var = tk.StringVar()
-        crypto_pairs = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'SOL/USDT', 'ADA/USDT']
+        crypto_pairs = ['BTC/USDT', 'XRP/USDT']
         ttk.Label(symbols_frame, text="Crypto:").pack(side=tk.LEFT, padx=5)
         crypto_combo = ttk.Combobox(symbols_frame, textvariable=self.crypto_var, values=crypto_pairs)
         crypto_combo.pack(side=tk.LEFT, padx=5)
@@ -330,25 +330,37 @@ class TradingBotGUI:
 
     def run_analysis(self, symbol, timeframe):
         try:
+            # Validate symbol
+            allowed_symbols = ['BTC/USDT', 'XRP/USDT']
+            if symbol not in allowed_symbols:
+                self.queue.put({
+                    'type': 'status',
+                    'data': f"Error: Only {', '.join(allowed_symbols)} analysis is supported"
+                })
+                return
+
             # Fetch data and run analysis
+            self.queue.put({
+                'type': 'status',
+                'data': f"Analyzing {symbol} on {timeframe} timeframe..."
+            })
+
+            # Run market analysis
             result = analyze_market(symbol, chart_timeframe=timeframe)
             if result and 'signals' in result and not result['signals'].empty:
-                # Send signals through queue
                 self.queue.put({
                     'type': 'signal',
-                    'data': result['signals']
+                    'data': f"\n=== {symbol} Analysis ===\n{result['signals']}\n"
                 })
             
-            # Run multi-timeframe analysis
+            # Run multi-timeframe analysis with key timeframes
             mtf_signals = analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h', '15m'])
             if not mtf_signals.empty:
                 self.queue.put({
                     'type': 'signal',
-                    'data': mtf_signals,
-                    'prefix': "MTF Signal: "
+                    'data': f"\n=== Multi-Timeframe Analysis for {symbol} ===\n{mtf_signals}\n"
                 })
 
-            # Update status through queue
             self.queue.put({
                 'type': 'status',
                 'data': f"Analysis completed for {symbol}"
@@ -357,7 +369,7 @@ class TradingBotGUI:
         except Exception as e:
             self.queue.put({
                 'type': 'status',
-                'data': f"Error: {str(e)}"
+                'data': f"Error during analysis: {str(e)}"
             })
         finally:
             self.analyzing = False

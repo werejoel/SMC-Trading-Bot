@@ -144,40 +144,60 @@ def fetch_from_alphavantage(base, quote, timeframe):
             if "Error Message" in data:
                 raise Exception(f"Alpha Vantage error: {data['Error Message']}")
             
-            # Extract time series data
+            # Extract and validate time series data
             time_series_key = next((k for k in data.keys() if 'Time Series' in k), None)
             if not time_series_key:
                 raise Exception("No time series data found")
             
-            df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
-            df = df.rename(columns={
-                '1. open': 'open',
-                '2. high': 'high',
-                '3. low': 'low',
-                '4. close': 'close'
-            })
+            # Convert to DataFrame with validation
+            try:
+                df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
+                required_columns = ['1. open', '2. high', '3. low', '4. close']
+                if not all(col in df.columns for col in required_columns):
+                    raise Exception("Missing required OHLC columns")
+                
+                df = df.rename(columns={
+                    '1. open': 'open',
+                    '2. high': 'high',
+                    '3. low': 'low',
+                    '4. close': 'close'
+                })
+            except Exception as e:
+                raise Exception(f"Error processing time series data: {e}")
             
-            # Process the data
-            df = df.astype(float)
-            df.index = pd.to_datetime(df.index)
-            df = df.sort_index()
-            df['volume'] = 0
-            df = df.reset_index()
-            df = df.rename(columns={'index': 'timestamp'})
-            df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-            
-            # Handle 4h timeframe
-            if timeframe == '4h':
-                df.set_index('timestamp', inplace=True)
-                df = df.resample('4H').agg({
-                    'open': 'first',
-                    'high': 'max',
-                    'low': 'min',
-                    'close': 'last',
-                    'volume': 'sum'
-                }).dropna()
-                df.reset_index(inplace=True)
+            # Process the data with validation
+            try:
+                df = df.astype(float)
+                df.index = pd.to_datetime(df.index)
+                df = df.sort_index()
+                # Estimate volume using price range and average volume
+                df['volume'] = (df['high'] - df['low']) * df['close'] * 1000
+                df = df.reset_index()
+                df = df.rename(columns={'index': 'timestamp'})
                 df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+            except Exception as e:
+                raise Exception(f"Error converting data types: {e}")
+            
+            # Handle 4h timeframe with proper handling of missing periods
+            if timeframe == '4h':
+                try:
+                    df.set_index('timestamp', inplace=True)
+                    # Create continuous 4H periods
+                    idx = pd.date_range(start=df.index.min(), end=df.index.max(), freq='4H')
+                    df = df.reindex(idx)
+                    # Resample with forward fill for gaps
+                    df = df.resample('4H').agg({
+                        'open': 'first',
+                        'high': 'max',
+                        'low': 'min',
+                        'close': 'last',
+                        'volume': 'sum'
+                    }).fillna(method='ffill', limit=2)  # Fill up to 2 missing periods
+                    df = df.dropna()  # Remove any remaining NaN periods
+                    df.reset_index(inplace=True)
+                    df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+                except Exception as e:
+                    raise Exception(f"Error resampling to 4H timeframe: {e}")
             
             return df.tail(200)
             

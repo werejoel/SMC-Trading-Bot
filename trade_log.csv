@@ -228,4 +228,14 @@ timestamp,symbol,signal_type,entry_price,stop_loss,take_profit,confidence,reason
 2025-03-26 16:53:16,BTC/USDT,short,86939.27,89644.4136,81528.98280000001,high,Price at unmitigated bearish order block in bearish trend,2.0
 2025-03-26 16:53:16,BTC/USDT,short,86939.27,90310.4226,80196.9648,high,Price at unmitigated bearish order block in bearish trend,2.0
 2025-03-26 16:53:28,ETH/USDT,short,2009.24,2098.7316,1830.2568,high,Price at unmitigated bearish order block in bearish trend,2.0
-2025-03-26 16:53:28,ETH/USDT,short,2009.24,2078.5764,1870.5672000000002,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-26 16:53:28,ETH/USDT,short,2009.24,2078.5764,1870.5672,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-27 04:45:56,BTC/USDT,short,86910.59,89644.4136,81442.94279999999,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-27 04:45:56,BTC/USDT,short,86910.59,90310.4226,80110.92479999998,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-27 04:45:56,BTC/USDT,short,86910.59,90040.5,80650.76999999999,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+2025-03-27 06:48:02,BTC/USDT,short,85993.65,89644.4136,78692.12279999998,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-27 06:48:02,BTC/USDT,short,85993.65,90040.5,77899.94999999998,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+2025-03-27 06:48:41,XRP/USDT,short,2.3085,2.4378,2.0499,medium,Bearish three_black_crows pattern at resistance in bearish trend,2.0
+2025-03-27 12:16:53,XRP/USDT,short,2.3469,2.511648,2.0174040000000004,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
+2025-03-27 13:37:32,SOL/USDT,short,139.15,144.8808,127.68840000000004,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-27 13:55:33,SOL/USDT,short,139.08,144.8808,127.47840000000004,high,Price at unmitigated bearish order block in bearish trend,2.0
+2025-03-27 13:55:33,SOL/USDT,short,139.08,147.21660000000003,122.80679999999998,medium,Bearish bearish_engulfing pattern at resistance in bearish trend,2.0
