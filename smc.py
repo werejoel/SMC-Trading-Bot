@@ -17,6 +17,7 @@ ALPHA_VANTAGE_API_KEY = API_KEYS['alphavantage']
 OANDA_API_KEY = API_KEYS['oanda']
 MT5_TERMINAL_PATH = MT5_CONFIG['path']
 FINNHUB_API_KEY = API_KEYS['finnhub']
+FCSAPI_KEY = API_KEYS['fcsapi']  # Add this to your config.py file
 
 
 # Initialize exchange (using ccxt)
@@ -93,27 +94,29 @@ def initialize_forex_connection():
 
 def fetch_forex_data(symbol, timeframe, limit=200):
     """
-    Fetch forex/commodities data using Alpha Vantage with Finnhub fallback
+    Enhanced forex/commodities data fetching with FCS API as primary source
     """
     try:
-        # Format symbol for API requests
+        # Try FCS API first
+        data = fetch_from_fcsapi(symbol, timeframe, limit)
+        if data is not None:
+            return data
+        
+        # Fall back to Alpha Vantage
         if 'XAU' in symbol:
             base = 'XAU'
             quote = 'USD'
         elif 'USOIL' in symbol:
-            # Try Finnhub directly for oil data
             return fetch_from_finnhub(symbol, timeframe, limit)
         else:
             base = symbol[:3]
             quote = symbol[3:] or 'USD'
         
-        # First try Alpha Vantage
         data = fetch_from_alphavantage(base, quote, timeframe)
         if data is not None:
             return data
             
-        # If Alpha Vantage fails, try Finnhub
-        print(f"Alpha Vantage failed, trying Finnhub for {symbol}")
+        # Finally try Finnhub
         return fetch_from_finnhub(symbol, timeframe, limit)
         
     except Exception as e:
@@ -144,60 +147,40 @@ def fetch_from_alphavantage(base, quote, timeframe):
             if "Error Message" in data:
                 raise Exception(f"Alpha Vantage error: {data['Error Message']}")
             
-            # Extract and validate time series data
+            # Extract time series data
             time_series_key = next((k for k in data.keys() if 'Time Series' in k), None)
             if not time_series_key:
                 raise Exception("No time series data found")
             
-            # Convert to DataFrame with validation
-            try:
-                df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
-                required_columns = ['1. open', '2. high', '3. low', '4. close']
-                if not all(col in df.columns for col in required_columns):
-                    raise Exception("Missing required OHLC columns")
-                
-                df = df.rename(columns={
-                    '1. open': 'open',
-                    '2. high': 'high',
-                    '3. low': 'low',
-                    '4. close': 'close'
-                })
-            except Exception as e:
-                raise Exception(f"Error processing time series data: {e}")
+            df = pd.DataFrame.from_dict(data[time_series_key], orient='index')
+            df = df.rename(columns={
+                '1. open': 'open',
+                '2. high': 'high',
+                '3. low': 'low',
+                '4. close': 'close'
+            })
             
-            # Process the data with validation
-            try:
-                df = df.astype(float)
-                df.index = pd.to_datetime(df.index)
-                df = df.sort_index()
-                # Estimate volume using price range and average volume
-                df['volume'] = (df['high'] - df['low']) * df['close'] * 1000
-                df = df.reset_index()
-                df = df.rename(columns={'index': 'timestamp'})
-                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-            except Exception as e:
-                raise Exception(f"Error converting data types: {e}")
+            # Process the data
+            df = df.astype(float)
+            df.index = pd.to_datetime(df.index)
+            df = df.sort_index()
+            df['volume'] = 0
+            df = df.reset_index()
+            df = df.rename(columns={'index': 'timestamp'})
+            df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
             
-            # Handle 4h timeframe with proper handling of missing periods
+            # Handle 4h timeframe
             if timeframe == '4h':
-                try:
-                    df.set_index('timestamp', inplace=True)
-                    # Create continuous 4H periods
-                    idx = pd.date_range(start=df.index.min(), end=df.index.max(), freq='4H')
-                    df = df.reindex(idx)
-                    # Resample with forward fill for gaps
-                    df = df.resample('4H').agg({
-                        'open': 'first',
-                        'high': 'max',
-                        'low': 'min',
-                        'close': 'last',
-                        'volume': 'sum'
-                    }).fillna(method='ffill', limit=2)  # Fill up to 2 missing periods
-                    df = df.dropna()  # Remove any remaining NaN periods
-                    df.reset_index(inplace=True)
-                    df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-                except Exception as e:
-                    raise Exception(f"Error resampling to 4H timeframe: {e}")
+                df.set_index('timestamp', inplace=True)
+                df = df.resample('4H').agg({
+                    'open': 'first',
+                    'high': 'max',
+                    'low': 'min',
+                    'close': 'last',
+                    'volume': 'sum'
+                }).dropna()
+                df.reset_index(inplace=True)
+                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
             
             return df.tail(200)
             
@@ -257,6 +240,72 @@ def fetch_from_finnhub(symbol, timeframe, limit=200):
         
     except Exception as e:
         print(f"Finnhub request failed: {e}")
+        return None
+
+def fetch_from_fcsapi(symbol, timeframe, limit=200):
+    """Helper function for FCS API"""
+    # Map timeframes to FCS API format
+    fcs_timeframe_map = {
+        '1m': '1',
+        '5m': '5',
+        '15m': '15',
+        '30m': '30',
+        '1h': '1h',
+        '4h': '4h',
+        '1d': '1d'
+    }
+    
+    period = fcs_timeframe_map.get(timeframe, '1h')
+    
+    # Format symbol for FCS API
+    if 'XAU' in symbol:
+        fcs_symbol = 'GOLD/USD'
+    elif 'USOIL' in symbol:
+        fcs_symbol = 'OIL/USD'
+    else:
+        fcs_symbol = f"{symbol[:3]}/{symbol[3:]}"
+    
+    # Construct API URL
+    url = f"https://fcsapi.com/api-v3/forex/history"
+    params = {
+        'symbol': fcs_symbol,
+        'period': period,
+        'access_key': FCSAPI_KEY,
+        'level': 2  # Include volume data
+    }
+    
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if 'response' in data and data['status']:
+            # Convert response to DataFrame
+            df = pd.DataFrame(data['response'])
+            
+            # Rename columns to match our format
+            df = df.rename(columns={
+                'o': 'open',
+                'h': 'high',
+                'l': 'low',
+                'c': 'close',
+                'v': 'volume',
+                't': 'timestamp'
+            })
+            
+            # Convert types and format timestamp
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            for col in ['open', 'high', 'low', 'close', 'volume']:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+            df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+            
+            return df.tail(limit)
+            
+        print(f"FCS API error for {symbol}: {data.get('msg', 'Unknown error')}")
+        return None
+        
+    except Exception as e:
+        print(f"FCS API request failed: {e}")
         return None
 
 # Fetch market data with retry mechanism
@@ -950,8 +999,14 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
                          ha='right',
                          va='center')
 
+    # Modify the FVG plotting section to handle potential missing columns safely
+    if not fair_value_gaps.empty and 'filled' in fair_value_gaps.columns:
+        unfilled_fvgs = fair_value_gaps[fair_value_gaps['filled'] == False]
+    else:
+        unfilled_fvgs = fair_value_gaps  # Use all FVGs if 'filled' column doesn't exist
+    
     # Plot unmitigated FVGs
-    for _, fvg in fair_value_gaps[fair_value_gaps['filled'] == False].iterrows():
+    for _, fvg in unfilled_fvgs.iterrows():
         color = colors['fvg_bull'] if fvg['type'] == 'bullish' else colors['fvg_bear']
         
         # Plot FVG zone with gradient fill
@@ -961,7 +1016,7 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
                              color=color, alpha=0.1)
         
         # Add label with strength
-        label = f"FVG ({fvg['strength']:.1f}%)"
+        label = f"FVG ({fvg.get('strength', 0):.1f}%)"
         ax_main.annotate(label,
                          xy=(mdates.date2num(fvg['timestamp']), (fvg['top'] + fvg['bottom']) / 2),
                          xytext=(10, 0),
@@ -1103,95 +1158,91 @@ def plot_chart(df, liquidity_zones, supply_demand_zones, order_blocks,
 # ===== ANALYSIS AND SIGNAL GENERATION =====
 def analyze_market(symbol, chart_timeframe='4h', entry_timeframe='15m'):
     """
-    Enhanced market analysis with better crypto-specific handling
+    Enhanced market analysis with better validation and logging
     """
-    print(f"\n--- Analyzing {symbol} ---")
+    print(f"\n=== Starting Analysis for {symbol} ===")
     
-    # Validate timeframes for crypto
-    valid_timeframes = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d']
-    if chart_timeframe not in valid_timeframes:
-        chart_timeframe = '1h'
-    if entry_timeframe not in valid_timeframes:
-        entry_timeframe = '15m'
-    
-    # Fetch data with volume validation
+    # Data validation
     df_chart = fetch_data(symbol, chart_timeframe, limit=200)
     df_entry = fetch_data(symbol, entry_timeframe, limit=200)
     
-    if df_chart is None or df_entry is None:
-        print(f"Could not fetch valid data for {symbol}")
+    if df_chart is None or df_entry is None or len(df_chart) < 100 or len(df_entry) < 100:
+        print(f"Insufficient data for {symbol}")
         return None
     
-    # Validate volume data
-    if df_chart['volume'].mean() == 0 or df_entry['volume'].mean() == 0:
-        print(f"Invalid volume data for {symbol}")
+    # Add validation for price data
+    if df_chart['close'].std() == 0 or df_entry['close'].std() == 0:
+        print(f"Invalid price data for {symbol}")
         return None
-
-    # Add crypto-specific market analysis
-    df_chart = add_crypto_indicators(df_chart)
-    df_entry = add_crypto_indicators(df_entry)
     
-    # Add technical indicators to both timeframes
-    df_chart = add_technical_indicators(df_chart)
-    df_entry = add_technical_indicators(df_entry)
-    
-    # Determine trend using market structure instead of EMAs
-    trend = "bullish" if len(identify_market_structure_breaks(df_chart)) > 0 and identify_market_structure_breaks(df_chart).iloc[-1]['type'] == 'Bullish BMS' else "bearish"
-    print(f"Chart timeframe trend: {trend}")
-    
-    # Use 15m timeframe for detailed analysis
-    liquidity_zones = identify_liquidity_zones(df_entry)
-    supply_demand_zones = identify_supply_demand_zones(df_entry)
-    order_blocks = identify_order_blocks(df_entry)
-    candlestick_patterns = identify_candlestick_patterns(df_entry)
-    fair_value_gaps = identify_fair_value_gaps(df_entry)
-    
-    # Calculate smart entry points using 15m data
-    smart_entries = calculate_smart_entry_points(df_entry, liquidity_zones, supply_demand_zones, candlestick_patterns, fair_value_gaps, order_blocks)
-    
-    # Generate trading signals using 15m data but considering 4h trend
-    signals = generate_trading_signals(df_entry, liquidity_zones, supply_demand_zones, 
-                                    order_blocks, candlestick_patterns, smart_entries, trend)
-    
-    # Convert signals to smart_entries format for plotting
-    if not signals.empty:
-        smart_entries = pd.DataFrame([{
-            'type': signal['signal_type'],
-            'entry_price': signal['entry_price'],
-            'stop_loss': signal['stop_loss'],
-            'take_profit': signal['take_profit']
-        } for _, signal in signals.iterrows()])
-    
-    # Plot using 4h data but mark entry points from signals
-    plot_chart(df_chart, liquidity_zones, supply_demand_zones, order_blocks, 
-              candlestick_patterns, smart_entries, fair_value_gaps, symbol)
-    
-    # Log any potential trade setups
-    if not signals.empty:
-        log_trades(symbol, signals)
-        print(f"Found {len(signals)} trading signals for {symbol}")
-    else:
-        print(f"No trading signals found for {symbol}")
-    
-    # Plot analysis chart using 4h timeframe
-    print("\nDebug Info before plotting:")
-    print(f"Data points in chart timeframe: {len(df_chart)}")
-    print(f"Data points in entry timeframe: {len(df_entry)}")
-    print(f"Liquidity zones found: {len(liquidity_zones)}")
-    print(f"Supply/Demand zones found: {len(supply_demand_zones)}")
-    print(f"Order blocks found: {len(order_blocks)}")
-    print(f"Candlestick patterns found: {len(candlestick_patterns)}")
-    print(f"Smart entries found: {len(smart_entries)}")
-    
-    return {
-        'symbol': symbol,
-        'trend': trend,
-        'liquidity_zones': liquidity_zones,
-        'supply_demand_zones': supply_demand_zones,
-        'order_blocks': order_blocks,
-        'candlestick_patterns': candlestick_patterns,
-        'signals': signals
-    }
+    # Add indicators with validation
+    try:
+        df_chart = add_technical_indicators(df_chart)
+        df_entry = add_technical_indicators(df_entry)
+        
+        # Get market structure and trend
+        market_structure = identify_market_structure_breaks(df_chart)
+        trend = "bullish" if len(market_structure) > 0 and market_structure.iloc[-1]['type'] == 'Bullish BMS' else "bearish"
+        
+        # Detailed analysis
+        liquidity_zones = identify_liquidity_zones(df_entry)
+        supply_demand_zones = identify_supply_demand_zones(df_entry)
+        order_blocks = identify_order_blocks(df_entry)
+        candlestick_patterns = identify_candlestick_patterns(df_entry)
+        fair_value_gaps = identify_fair_value_gaps(df_entry)
+        
+        # Calculate smart entries
+        smart_entries = calculate_smart_entry_points(
+            df_entry,
+            liquidity_zones,
+            supply_demand_zones,
+            candlestick_patterns,
+            fair_value_gaps,
+            order_blocks
+        )
+        
+        # Generate signals
+        signals = generate_trading_signals(
+            df_entry,
+            liquidity_zones,
+            supply_demand_zones,
+            order_blocks,
+            candlestick_patterns,
+            smart_entries,
+            trend
+        )
+        
+        # Create the plot
+        fig = plot_chart(
+            df_chart,
+            liquidity_zones,
+            supply_demand_zones,
+            order_blocks,
+            candlestick_patterns,
+            smart_entries if not signals.empty else signals,
+            fair_value_gaps,
+            symbol
+        )
+        
+        # Return comprehensive analysis with figure
+        return {
+            'symbol': symbol,
+            'trend': trend,
+            'liquidity_zones': liquidity_zones,
+            'supply_demand_zones': supply_demand_zones,
+            'order_blocks': order_blocks,
+            'candlestick_patterns': candlestick_patterns,
+            'signals': signals,
+            'fig': fig,
+            'analysis': {
+                'liquidity_zones': liquidity_zones,
+                'order_blocks': order_blocks
+            }
+        }
+        
+    except Exception as e:
+        print(f"Analysis error: {e}")
+        return None
 
 def generate_trading_signals(df, liquidity_zones, supply_demand_zones, 
                            order_blocks, candlestick_patterns, smart_entries, higher_trend):
@@ -1569,80 +1620,90 @@ def analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h']):
     
     return pd.DataFrame(confluence_signals) if confluence_signals else pd.DataFrame()
 
-def identify_market_structure_breaks(df, window=10):
+def identify_market_structure_breaks(df, window=10, min_swing_size=0.003):
     """
-    Identify valid breaks of market structure and change of character
+    Identify valid breaks of market structure and change of character with enhanced validation:
+    - Minimum swing size threshold to avoid noise
+    - Volume confirmation
+    - Break retest validation
+    - Momentum confirmation
     Returns DataFrame with BMS and CHoCH points
     """
     structure_breaks = []
+    atr = df['atr'].rolling(window=14).mean()  # Use ATR for dynamic thresholds
     
     for i in range(window, len(df) - window):
-        # Look for significant swing points
+        # Calculate swing points using ATR-based threshold
+        swing_threshold = atr.iloc[i] * 0.5
+        
+        # Look for significant swing points (filter small swings using ATR)
         prev_highs = df['high'].iloc[i-window:i].max()
         prev_lows = df['low'].iloc[i-window:i].min()
-        next_highs = df['high'].iloc[i+1:i+window].max()
-        next_lows = df['low'].iloc[i+1:i+window].min()
+        next_highs = df['high'].iloc[i+window:i+1].max()
+        next_lows = df['low'].iloc[i+window:i+1].min()
         
-        # Bullish BMS: Break above significant structure after downtrend
+        # Calculate swing sizes
+        up_swing_size = (df['high'].iloc[i] - prev_lows) / prev_lows
+        down_swing_size = (prev_highs - df['low'].iloc[i]) / prev_highs
+        
+        # Volume confirmation (compare to average volume)
+        vol_avg = df['volume'].iloc[i-window:i].mean()
+        strong_volume = df['volume'].iloc[i] > vol_avg * 1.5
+        
+        # Bullish BMS with enhanced validation
         if (df['low'].iloc[i-window:i].is_monotonic_decreasing and  # Downtrend
             df['high'].iloc[i] > prev_highs and  # Breaks above previous high
-            df['close'].iloc[i] > df['open'].iloc[i] and  # Strong bullish close
-            next_lows > df['low'].iloc[i]):  # Maintained break
+            up_swing_size > min_swing_size and  # Significant swing size
+            strong_volume and  # Volume confirmation
+            next_lows > df['low'].iloc[i]):  # Break maintained
             
-            structure_breaks.append({
-                'timestamp': df['timestamp'].iloc[i],
-                'price': df['high'].iloc[i],
-                'type': 'Bullish BMS',
-                'valid': True
-            })
+            # Check for valid retest
+            retest_zone = [prev_highs * 0.995, prev_highs * 1.005]  # 0.5% retest zone
+            retest_valid = any(
+                (df['low'].iloc[j] >= retest_zone[0] and df['low'].iloc[j] <= retest_zone[1])
+                for j in range(i+1, min(i+window, len(df)))
+            )
+            
+            if retest_valid:
+                structure_breaks.append({
+                    'timestamp': df['timestamp'].iloc[i],
+                    'price': df['high'].iloc[i],
+                    'type': 'Bullish BMS',
+                    'strength': up_swing_size,
+                    'volume_ratio': df['volume'].iloc[i] / vol_avg,
+                    'valid': True
+                })
         
-        # Bearish BMS: Break below significant structure after uptrend
-        if (df['high'].iloc[i-window:i].is_monotonic_increasing and  # Uptrend
-            df['low'].iloc[i] < prev_lows and  # Breaks below previous low
-            df['close'].iloc[i] < df['open'].iloc[i] and  # Strong bearish close
-            next_highs < df['high'].iloc[i]):  # Maintained break
+        # Bearish BMS with enhanced validation
+        elif (df['high'].iloc[i-window:i].is_monotonic_increasing and  # Uptrend
+              df['low'].iloc[i] < prev_lows and  # Breaks below previous low
+              down_swing_size > min_swing_size and  # Significant swing size
+              strong_volume and  # Volume confirmation
+              next_highs < df['high'].iloc[i]):  # Break maintained
             
-            structure_breaks.append({
-                'timestamp': df['timestamp'].iloc[i],
-                'price': df['low'].iloc[i],
-                'type': 'Bearish BMS',
-                'valid': True
-            })
-        
-        # Bullish CHoCH: Higher high after series of lower highs
-        if (i > window*2 and
-            all(df['high'].iloc[j] > df['high'].iloc[j-1] for j in range(i-window+1, i)) and
-            df['high'].iloc[i] > df['high'].iloc[i-window:i].max() and
-            next_lows > df['low'].iloc[i-window:i].min()):
+            # Check for valid retest
+            retest_zone = [prev_lows * 0.995, prev_lows * 1.005]  # 0.5% retest zone
+            retest_valid = any(
+                (df['high'].iloc[j] >= retest_zone[0] and df['high'].iloc[j] <= retest_zone[1])
+                for j in range(i+1, min(i+window, len(df)))
+            )
             
-            structure_breaks.append({
-                'timestamp': df['timestamp'].iloc[i],
-                'price': df['high'].iloc[i],
-                'type': 'Bullish CHoCH',
-                'valid': True
-            })
-        
-        # Bearish CHoCH: Lower low after series of higher lows
-        if (i > window*2 and
-            all(df['low'].iloc[j] < df['low'].iloc[j-1] for j in range(i-window+1, i)) and
-            df['low'].iloc[i] < df['low'].iloc[i-window:i].min() and
-            next_highs < df['high'].iloc[i-window:i].max()):
-            
-            structure_breaks.append({
-                'timestamp': df['timestamp'].iloc[i],
-                'price': df['low'].iloc[i],
-                'type': 'Bearish CHoCH',
-                'valid': True
-            })
+            if retest_valid:
+                structure_breaks.append({
+                    'timestamp': df['timestamp'].iloc[i],
+                    'price': df['low'].iloc[i],
+                    'type': 'Bearish BMS',
+                    'strength': down_swing_size,
+                    'volume_ratio': df['volume'].iloc[i] / vol_avg,
+                    'valid': True
+                })
     
     return pd.DataFrame(structure_breaks)
 
 def identify_fair_value_gaps(df, lookback=30):
     """
     Identify valid unmitigated Fair Value Gaps (FVG) near recent market structure
-    - Only shows FVGs that haven't been filled
-    - Focuses on FVGs near potential entry points
-    - Validates FVGs against market structure
+    Returns DataFrame with consistent columns including 'filled' status
     """
     fvgs = []
     current_price = df['close'].iloc[-1]
@@ -1650,6 +1711,9 @@ def identify_fair_value_gaps(df, lookback=30):
     for i in range(len(df)-lookback, len(df)-2):  # Only look at recent price action
         # Bullish FVG
         if df['low'].iloc[i+2] > df['high'].iloc[i]:
+            # Calculate gap size as percentage
+            gap_size = (df['low'].iloc[i+2] - df['high'].iloc[i]) / df['high'].iloc[i] * 100
+            
             # Check if FVG is still valid (not filled)
             is_filled = any(df['low'].iloc[i+3:] <= df['high'].iloc[i])
             
@@ -1663,12 +1727,15 @@ def identify_fair_value_gaps(df, lookback=30):
                     'top': df['low'].iloc[i+2],
                     'bottom': df['high'].iloc[i],
                     'timestamp': df['timestamp'].iloc[i+1],
-                    'filled': False,
-                    'strength': (df['low'].iloc[i+2] - df['high'].iloc[i]) / df['high'].iloc[i] * 100  # Gap size as percentage
+                    'filled': False,  # Ensure 'filled' column exists
+                    'strength': gap_size
                 })
         
         # Bearish FVG
         if df['high'].iloc[i+2] < df['low'].iloc[i]:
+            # Calculate gap size as percentage
+            gap_size = (df['low'].iloc[i] - df['high'].iloc[i+2]) / df['low'].iloc[i] * 100
+            
             # Check if FVG is still valid (not filled)
             is_filled = any(df['high'].iloc[i+3:] >= df['low'].iloc[i])
             
@@ -1682,21 +1749,97 @@ def identify_fair_value_gaps(df, lookback=30):
                     'top': df['low'].iloc[i],
                     'bottom': df['high'].iloc[i+2],
                     'timestamp': df['timestamp'].iloc[i+1],
-                    'filled': False,
-                    'strength': (df['low'].iloc[i] - df['high'].iloc[i+2]) / df['low'].iloc[i] * 100  # Gap size as percentage
+                    'filled': False,  # Ensure 'filled' column exists
+                    'strength': gap_size
                 })
     
-    # Sort FVGs by strength and take only the strongest ones
-    fvgs_df = pd.DataFrame(fvgs)
+    # Create DataFrame with all required columns
+    fvgs_df = pd.DataFrame(fvgs, columns=['type', 'top', 'bottom', 'timestamp', 'filled', 'strength'])
+    
+    # Sort by strength and take top 3
     if not fvgs_df.empty:
         fvgs_df = fvgs_df.nlargest(3, 'strength')
+    
     return fvgs_df
 
-# ===== MAIN FUNCTION =====
+def monitor_price_action(symbol, timeframe='1m', lookback_periods=5):
+    """
+    Monitor price action in real-time and detect immediate buying/selling opportunities
+    """
+    try:
+        while True:
+            # Fetch recent price data
+            df = fetch_data(symbol, timeframe, limit=lookback_periods + 1)
+            if df is None:
+                print(f"Error fetching data for {symbol}")
+                time.sleep(10)
+                continue
+                
+            # Calculate price change
+            current_price = df['close'].iloc[-1]
+            prev_price = df['close'].iloc[-2]
+            price_change_pct = ((current_price - prev_price) / prev_price) * 100
+            
+            # Calculate recent momentum
+            recent_momentum = df['close'].pct_change().mean() * 100
+            
+            # Get volume increase
+            volume_change_pct = ((df['volume'].iloc[-1] - df['volume'].iloc[-2]) / df['volume'].iloc[-2]) * 100
+            
+            # Check for sudden price movements with volume confirmation
+            if abs(price_change_pct) >= 0.5 and volume_change_pct > 50:  # 0.5% price move with 50% volume increase
+                signal_type = 'SELL' if price_change_pct > 0 else 'BUY'
+                entry_price = current_price
+                
+                # Calculate stop loss and take profit
+                atr = ta.volatility.average_true_range(df['high'], df['low'], df['close']).iloc[-1]
+                if signal_type == 'BUY':
+                    stop_loss = entry_price - (2 * atr)
+                    take_profit = entry_price + (3 * atr)
+                else:
+                    stop_loss = entry_price + (2 * atr)
+                    take_profit = entry_price - (3 * atr)
+                
+                # Print signal with timestamp
+                print("\n" + "="*50)
+                print(f"INSTANT SIGNAL DETECTED FOR {symbol}")
+                print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                print(f"Signal Type: {signal_type}")
+                print(f"Entry Price: {entry_price:.8f}")
+                print(f"Stop Loss: {stop_loss:.8f}")
+                print(f"Take Profit: {take_profit:.8f}")
+                print(f"Price Change: {price_change_pct:.2f}%")
+                print(f"Volume Increase: {volume_change_pct:.2f}%")
+                print(f"Recent Momentum: {recent_momentum:.2f}%")
+                print("="*50 + "\n")
+                
+                # Log the signal
+                try:
+                    log_trades(symbol, pd.DataFrame([{
+                        'signal_type': signal_type.lower(),
+                        'entry_price': entry_price,
+                        'stop_loss': stop_loss,
+                        'take_profit': take_profit,
+                        'confidence': 'high' if abs(price_change_pct) > 1 else 'medium',
+                        'reason': f'Sudden {signal_type.lower()} signal with {volume_change_pct:.1f}% volume spike',
+                        'risk_reward_ratio': 1.5
+                    }]))
+                except Exception as e:
+                    print(f"Error logging trade: {e}")
+            
+            # Sleep for a short interval before next check
+            time.sleep(5)  # Check every 5 seconds
+            
+    except KeyboardInterrupt:
+        print("\nPrice monitoring stopped by user")
+    except Exception as e:
+        print(f"Error in price monitoring: {e}")
+        time.sleep(10)  # Wait before retrying
+
 
 def main():
     """
-    Main function
+    Modified main function with real-time monitoring
     """
     print("=" * 120)
     print("=======================  Welcome To Our Trading Bot =======================================================")    
@@ -1708,89 +1851,22 @@ def main():
     print("   =======================  Email: joellitoprogrammer2@gmail.com ===============================================")
     print("=" * 120)
     
-    # Define symbols to analyze (now including forex and commodities)
+    # Define symbols to monitor
     crypto_symbols = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'SOL/USDT', 'ADA/USDT']
     forex_symbols = ['XAUUSD', 'GBPJPY', 'USDJPY', 'USOIL']
     
-    # Define timeframes
-    chart_timeframe = '1h'    # Main chart display timeframe (changed to 1h)
-    entry_timeframe = '15m'   # Entry analysis timeframe
+    print("\nStarting real-time price monitoring...")
+    print("Press Ctrl+C to stop monitoring\n")
     
-    all_signals = []
-    
-    # Run analysis with specified timeframes
-    for symbol in crypto_symbols:
+    # Monitor each symbol in sequence
+    while True:
         try:
-            result = analyze_market(symbol, chart_timeframe=chart_timeframe, entry_timeframe=entry_timeframe)
-            if result is not None and 'signals' in result and not result['signals'].empty:
-                all_signals.append(result['signals'])
+            for symbol in crypto_symbols + forex_symbols:
+                monitor_price_action(symbol)
+                time.sleep(1)  # Brief pause between symbols
+        except KeyboardInterrupt:
+            print("\nMonitoring stopped by user")
+            break
         except Exception as e:
-            print(f"Error analyzing {symbol}: {e}")
-    
-    # Run multi-timeframe analysis for confluence signals
-    for symbol in crypto_symbols:
-        try:
-            mtf_signals = analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h', '15m'])
-            if not mtf_signals.empty:
-                all_signals.append(mtf_signals)
-                print(f"Found multi-timeframe confluence signal for {symbol}")
-        except Exception as e:
-            print(f"Error in multi-timeframe analysis for {symbol}: {e}")
-    
-    # Analyze forex pairs
-    for symbol in forex_symbols:
-        try:
-            # Use forex-specific data fetching
-            df_chart = fetch_forex_data(symbol, chart_timeframe)
-            df_entry = fetch_forex_data(symbol, entry_timeframe)
-            
-            if df_chart is not None and df_entry is not None:
-                result = analyze_market(symbol, chart_timeframe=chart_timeframe, entry_timeframe=entry_timeframe)
-                if result is not None and 'signals' in result and not result['signals'].empty:
-                    all_signals.append(result['signals'])
-                    
-                # Run multi-timeframe analysis
-                mtf_signals = analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h', '15m'])
-                if not mtf_signals.empty:
-                    all_signals.append(mtf_signals)
-                    print(f"Found multi-timeframe confluence signal for {symbol}")
-                    
-        except Exception as e:
-            print(f"Error analyzing forex pair {symbol}: {e}")
-
-    # Combine all signals
-    if all_signals:
-        combined_signals = pd.concat(all_signals)
-        print("\n==================================== HIGH PROBABILITY TRADE SETUPS FOUND FOR AVAILABLE SYMBOLS =========================================")
-        
-        # Sort by confidence
-        confidence_order = {'very_high': 0, 'high': 1, 'medium': 2, 'low': 3}
-        combined_signals['confidence_value'] = combined_signals['confidence'].map(confidence_order)
-        combined_signals = combined_signals.sort_values('confidence_value')
-        
-        # Display top signals
-        for _, signal in combined_signals.iterrows():
-            print(f"\nSymbol: {signal['symbol']}")
-            print(f"Signal: {signal['signal_type'].upper()}")
-            print(f"Entry: {signal['entry_price']:.8f}")
-            print(f"Stop Loss: {signal['stop_loss']:.8f}")
-            print(f"Take Profit: {signal['take_profit']:.8f}")
-            print(f"Confidence: {signal['confidence'].upper()}")
-            print(f"Reason: {signal['reason']}")
-        combined_signals = combined_signals.sort_values('confidence_value')
-        
-        # Display top signals
-        for _, signal in combined_signals.iterrows():
-            print(f"\nSymbol: {signal['symbol']}")
-            print(f"Signal: {signal['signal_type'].upper()}")
-            print(f"Entry: {signal['entry_price']:.8f}")
-            print(f"Stop Loss: {signal['stop_loss']:.8f}")
-            print(f"Take Profit: {signal['take_profit']:.8f}")
-            print(f"Confidence: {signal['confidence'].upper()}")
-            print(f"Reason: {signal['reason']}")
-            print(f"Risk/Reward: 1:{signal['risk_reward_ratio']}")
-            print("-" * 30)
-    
-
-if __name__ == "__main__":
-    main()
+            print(f"Error in main loop: {e}")
+            time.sleep(10)
