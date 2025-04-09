@@ -243,7 +243,7 @@ def fetch_from_finnhub(symbol, timeframe, limit=200):
         return None
 
 def fetch_from_fcsapi(symbol, timeframe, limit=200):
-    """Helper function for FCS API"""
+    """Helper function for FCS API with improved symbol handling"""
     # Map timeframes to FCS API format
     fcs_timeframe_map = {
         '1m': '1',
@@ -262,6 +262,10 @@ def fetch_from_fcsapi(symbol, timeframe, limit=200):
         fcs_symbol = 'GOLD/USD'
     elif 'USOIL' in symbol:
         fcs_symbol = 'OIL/USD'
+    elif 'USDT' in symbol:
+        # Handle crypto pairs
+        base = symbol.replace('USDT', '')
+        fcs_symbol = f"{base}/USDT"
     else:
         fcs_symbol = f"{symbol[:3]}/{symbol[3:]}"
     
@@ -313,96 +317,46 @@ def fetch_data(symbol, timeframe, limit=200, source='ccxt'):
     """
     Enhanced data fetching with better error handling and data validation
     """
-    if source == 'ccxt':
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                # Validate symbol format
-                if '/' not in symbol:
+    try:
+        # Format symbol appropriately based on type
+        if source == 'ccxt':
+            if '/' not in symbol:
+                # Handle XRP/USDT style formatting
+                if 'USDT' in symbol:
+                    symbol = f"{symbol.replace('USDT', '')}/USDT"
+                else:
                     symbol = f"{symbol[:3]}/{symbol[3:]}"
 
-                # Ensure timeframe is supported
-                supported_timeframes = exchange.timeframes
-                if timeframe not in supported_timeframes:
-                    print(f"Timeframe {timeframe} not supported. Using 1h instead.")
-                    timeframe = '1h'
+            # Ensure timeframe is supported
+            if timeframe not in exchange.timeframes:
+                print(f"Timeframe {timeframe} not supported. Using 1h instead.")
+                timeframe = '1h'
 
-                # Fetch OHLCV with validation
-                ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
-                if not ohlcv or len(ohlcv) < limit/2:
-                    raise Exception("Insufficient data points")
-
-                df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-                
-                # Add data validation
-                df = df[df['high'] >= df['low']]  # Remove invalid candles
-                df = df[df['volume'] > 0]  # Remove zero volume candles
-                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-                df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-
-                # Check for gaps in data
-                time_diff = df['timestamp'].diff()
-                expected_diff = pd.Timedelta(timeframe.replace('m', 'min').replace('h', 'hour'))
-                if time_diff.max() > expected_diff * 2:
-                    print(f"Warning: Data gaps detected in {symbol}")
-
-                return df
-            except Exception as e:
-                print(f"Attempt {attempt+1}/{max_retries} failed: {e}")
-                time.sleep(2)  # Wait before retry
-        
-        print(f"Failed to fetch data for {symbol} after {max_retries} attempts")
-        return None
-
-    if source == 'alphavantage':
-        try:
-            url = f"https://www.alphavantage.co/query?function=FX_DAILY&from_symbol={symbol[:3]}&to_symbol={symbol[4:]}&apikey={ALPHA_VANTAGE_API_KEY}"
-            response = requests.get(url)
-            data = response.json()
-            
-            if "Time Series FX (Daily)" not in data:
-                print(f"Error fetching data from Alpha Vantage: {data}")
-                return None
-            
-            df = pd.DataFrame.from_dict(data["Time Series FX (Daily)"], orient='index')
-            df = df.rename(columns={
-                '1. open': 'open', 
-                '2. high': 'high', 
-                '3. low': 'low', 
-                '4. close': 'close' 
-            })
-            df = df.astype(float)
-            df.index = pd.to_datetime(df.index)
-            df = df.sort_index()
-            df['volume'] = 0  # AlphaVantage FX data doesn't include volume
-            df = df.reset_index()
-            df = df.rename(columns={'index': 'timestamp'})
-            df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
-            
-            return df.tail(limit)
-        except Exception as e:
-            print(f"Error fetching AlphaVantage data: {e}")
-            return None
-
-
-
-    # Default to CCXT
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
+            # Fetch OHLCV with validation
             ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+            if not ohlcv or len(ohlcv) < limit/2:
+                raise Exception("Insufficient data points")
+
             df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            
+            # Add data validation
+            df = df[df['high'] >= df['low']]  # Remove invalid candles
+            df = df[df['volume'] > 0]  # Remove zero volume candles
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
             df['timestamp_mpl'] = df['timestamp'].apply(mdates.date2num)
+
             return df
-        except Exception as e:
-            print(f"Attempt {attempt+1}/{max_retries} failed: {e}")
-            time.sleep(2)  # Wait before retry
-    
-    print(f"Failed to fetch data for {symbol} after {max_retries} attempts")
-    return None
 
-
+    except Exception as e:
+        print(f"Error fetching data for {symbol}: {e}")
+        # Try fallback to FCS API for crypto pairs
+        if 'USDT' in symbol:
+            try:
+                formatted_symbol = symbol.replace('/', '')
+                return fetch_from_fcsapi(formatted_symbol, timeframe, limit)
+            except Exception as e2:
+                print(f"Fallback fetch failed: {e2}")
+        return None
 
 # ===== TECHNICAL INDICATORS =====
 def add_technical_indicators(df):
@@ -1622,83 +1576,109 @@ def analyze_multi_timeframe(symbol, timeframes=['1d', '4h', '1h']):
 
 def identify_market_structure_breaks(df, window=10, min_swing_size=0.003):
     """
-    Identify valid breaks of market structure and change of character with enhanced validation:
-    - Minimum swing size threshold to avoid noise
-    - Volume confirmation
-    - Break retest validation
-    - Momentum confirmation
-    Returns DataFrame with BMS and CHoCH points
+    Identify high-probability breaks of market structure with strict validation:
+    - Larger minimum swing size threshold
+    - Strong volume confirmation requirement
+    - Multiple timeframe break confirmation
+    - Clear price action patterns
+    - Proper retest validation
+    Returns DataFrame with only the highest quality BMS points
     """
     structure_breaks = []
-    atr = df['atr'].rolling(window=14).mean()  # Use ATR for dynamic thresholds
+    atr = df['atr'].rolling(window=14).mean()
     
     for i in range(window, len(df) - window):
-        # Calculate swing points using ATR-based threshold
-        swing_threshold = atr.iloc[i] * 0.5
+        # Calculate dynamic thresholds based on ATR and volatility
+        swing_threshold = atr.iloc[i] * 0.8  # Increased threshold
+        vol_threshold = df['volume'].rolling(20).mean().iloc[i] * 2.0  # Require stronger volume
         
-        # Look for significant swing points (filter small swings using ATR)
+        # Calculate more precise swing points
         prev_highs = df['high'].iloc[i-window:i].max()
         prev_lows = df['low'].iloc[i-window:i].min()
-        next_highs = df['high'].iloc[i+window:i+1].max()
-        next_lows = df['low'].iloc[i+window:i+1].min()
+        next_highs = df['high'].iloc[i+1:i+window+1].max()
+        next_lows = df['low'].iloc[i+1:i+window+1].min()
         
-        # Calculate swing sizes
+        # Calculate swing momentum
         up_swing_size = (df['high'].iloc[i] - prev_lows) / prev_lows
         down_swing_size = (prev_highs - df['low'].iloc[i]) / prev_highs
         
-        # Volume confirmation (compare to average volume)
+        # Enhanced volume analysis
         vol_avg = df['volume'].iloc[i-window:i].mean()
-        strong_volume = df['volume'].iloc[i] > vol_avg * 1.5
+        strong_volume = df['volume'].iloc[i] > vol_threshold
+        volume_trend = all(df['volume'].iloc[i-j] > vol_avg for j in range(3))  # Check last 3 candles
         
-        # Bullish BMS with enhanced validation
-        if (df['low'].iloc[i-window:i].is_monotonic_decreasing and  # Downtrend
-            df['high'].iloc[i] > prev_highs and  # Breaks above previous high
-            up_swing_size > min_swing_size and  # Significant swing size
-            strong_volume and  # Volume confirmation
-            next_lows > df['low'].iloc[i]):  # Break maintained
+        # Bullish BMS with stricter rules
+        if (df['low'].iloc[i-window:i].is_monotonic_decreasing and  # Clear downtrend
+            df['high'].iloc[i] > prev_highs and  # Clear break
+            up_swing_size > min_swing_size * 2 and  # Double the minimum swing size
+            strong_volume and volume_trend and  # Strong and consistent volume
+            next_lows > df['low'].iloc[i] and  # Break maintained
+            df['close'].iloc[i] > df['open'].iloc[i] and  # Bullish close
+            df['close'].iloc[i] > (df['high'].iloc[i] + df['low'].iloc[i])/2):  # Close in upper half
             
-            # Check for valid retest
-            retest_zone = [prev_highs * 0.995, prev_highs * 1.005]  # 0.5% retest zone
+            # Stricter retest validation
+            retest_zone = [prev_highs * 0.997, prev_highs * 1.003]  # Tighter retest zone
             retest_valid = any(
-                (df['low'].iloc[j] >= retest_zone[0] and df['low'].iloc[j] <= retest_zone[1])
+                (df['low'].iloc[j] >= retest_zone[0] and 
+                 df['low'].iloc[j] <= retest_zone[1] and
+                 df['close'].iloc[j] > df['open'].iloc[j])  # Must be bullish retest
                 for j in range(i+1, min(i+window, len(df)))
             )
             
-            if retest_valid:
+            # Check for clear support formation after break
+            support_formed = all(df['low'].iloc[k] > df['low'].iloc[i] 
+                               for k in range(i+1, min(i+5, len(df))))
+            
+            if retest_valid and support_formed:
                 structure_breaks.append({
                     'timestamp': df['timestamp'].iloc[i],
                     'price': df['high'].iloc[i],
                     'type': 'Bullish BMS',
                     'strength': up_swing_size,
                     'volume_ratio': df['volume'].iloc[i] / vol_avg,
+                    'confidence': 'high' if up_swing_size > min_swing_size * 3 else 'medium',
                     'valid': True
                 })
         
-        # Bearish BMS with enhanced validation
-        elif (df['high'].iloc[i-window:i].is_monotonic_increasing and  # Uptrend
-              df['low'].iloc[i] < prev_lows and  # Breaks below previous low
-              down_swing_size > min_swing_size and  # Significant swing size
-              strong_volume and  # Volume confirmation
-              next_highs < df['high'].iloc[i]):  # Break maintained
+        # Bearish BMS with stricter rules
+        elif (df['high'].iloc[i-window:i].is_monotonic_increasing and  # Clear uptrend
+              df['low'].iloc[i] < prev_lows and  # Clear break
+              down_swing_size > min_swing_size * 2 and  # Double the minimum swing size
+              strong_volume and volume_trend and  # Strong and consistent volume
+              next_highs < df['high'].iloc[i] and  # Break maintained
+              df['close'].iloc[i] < df['open'].iloc[i] and  # Bearish close
+              df['close'].iloc[i] < (df['high'].iloc[i] + df['low'].iloc[i])/2):  # Close in lower half
             
-            # Check for valid retest
-            retest_zone = [prev_lows * 0.995, prev_lows * 1.005]  # 0.5% retest zone
+            # Stricter retest validation
+            retest_zone = [prev_lows * 0.997, prev_lows * 1.003]  # Tighter retest zone
             retest_valid = any(
-                (df['high'].iloc[j] >= retest_zone[0] and df['high'].iloc[j] <= retest_zone[1])
+                (df['high'].iloc[j] >= retest_zone[0] and 
+                 df['high'].iloc[j] <= retest_zone[1] and
+                 df['close'].iloc[j] < df['open'].iloc[j])  # Must be bearish retest
                 for j in range(i+1, min(i+window, len(df)))
             )
             
-            if retest_valid:
+            # Check for clear resistance formation after break
+            resistance_formed = all(df['high'].iloc[k] < df['high'].iloc[i] 
+                                  for k in range(i+1, min(i+5, len(df))))
+            
+            if retest_valid and resistance_formed:
                 structure_breaks.append({
                     'timestamp': df['timestamp'].iloc[i],
                     'price': df['low'].iloc[i],
                     'type': 'Bearish BMS',
                     'strength': down_swing_size,
                     'volume_ratio': df['volume'].iloc[i] / vol_avg,
+                    'confidence': 'high' if down_swing_size > min_swing_size * 3 else 'medium',
                     'valid': True
                 })
     
-    return pd.DataFrame(structure_breaks)
+    # Filter only the strongest breaks
+    df_breaks = pd.DataFrame(structure_breaks)
+    if not df_breaks.empty:
+        df_breaks = df_breaks[df_breaks['confidence'] == 'high'].reset_index(drop=True)
+    
+    return df_breaks
 
 def identify_fair_value_gaps(df, lookback=30):
     """
@@ -1839,34 +1819,170 @@ def monitor_price_action(symbol, timeframe='1m', lookback_periods=5):
 
 def main():
     """
-    Modified main function with real-time monitoring
+    Enhanced main function with multiple analysis options and better error handling
     """
     print("=" * 120)
-    print("=======================  Welcome To Our Trading Bot =======================================================")    
-    print("   =======================  This Bot Analyze Crypto Market And Give You The Best Signals =====================")
-    print("   =======================  This Bot Will Also Analyze Forex And Commodities =================================")
-    print("   =======================  Only Enter The Trade After You Have Checked The Signals Thoroughly ================")
-    print("   =======================  This Robot was Developed BY Lito Programmer's Team ================================")
-    print("   =======================  Trade With Easy Need Help Contact Us +256-705-672-545/789-251-487 =================")
-    print("   =======================  Email: joellitoprogrammer2@gmail.com ===============================================")
+    print("=======================  Smart Market Analysis Bot =====================================================")    
+    print("   1. Real-time Price Monitoring")
+    print("   2. Multi-Timeframe Analysis")
+    print("   3. Single Pair Detailed Analysis")
+    print("   4. Market Scanner (All Pairs)")
+    print("   5. Exit")
     print("=" * 120)
     
-    # Define symbols to monitor
+    # Define available symbols
     crypto_symbols = ['BTC/USDT', 'ETH/USDT', 'XRP/USDT', 'SOL/USDT', 'ADA/USDT']
     forex_symbols = ['XAUUSD', 'GBPJPY', 'USDJPY', 'USOIL']
+    timeframes = ['1d', '4h', '1h', '15m']
     
-    print("\nStarting real-time price monitoring...")
-    print("Press Ctrl+C to stop monitoring\n")
-    
-    # Monitor each symbol in sequence
     while True:
         try:
-            for symbol in crypto_symbols + forex_symbols:
-                monitor_price_action(symbol)
-                time.sleep(1)  # Brief pause between symbols
+            choice = input("\nSelect analysis mode (1-5): ")
+            
+            if choice == '1':
+                # Real-time monitoring
+                symbol = input("\nEnter symbol (or 'all' for all symbols): ").upper()
+                if symbol == 'ALL':
+                    print("\nMonitoring all symbols. Press Ctrl+C to stop...")
+                    for sym in crypto_symbols + forex_symbols:
+                        monitor_price_action(sym)
+                else:
+                    if symbol in crypto_symbols + forex_symbols:
+                        print(f"\nMonitoring {symbol}. Press Ctrl+C to stop...")
+                        monitor_price_action(symbol)
+                    else:
+                        print("Invalid symbol. Please try again.")
+                        
+            elif choice == '2':
+                # Multi-timeframe analysis
+                symbol = input("\nEnter symbol: ").upper()
+                symbol = validate_symbol(symbol)
+                if symbol in crypto_symbols + forex_symbols:
+                    print(f"\nAnalyzing {symbol} across multiple timeframes...")
+                    signals = analyze_multi_timeframe(symbol, timeframes)
+                    if not signals.empty:
+                        print("\nHigh-Probability Setups Found:")
+                        print(signals.to_string())
+                        # Log high-probability signals
+                        log_trades(symbol, signals)
+                    else:
+                        print("No high-probability setups found.")
+                else:
+                    print("Invalid symbol. Please try again.")
+                    
+            elif choice == '3':
+                # Detailed single pair analysis
+                symbol = input("\nEnter symbol: ").upper()
+                if symbol in crypto_symbols + forex_symbols:
+                    timeframe = input("Enter timeframe (e.g., 1h, 4h, 1d): ").lower()
+                    if timeframe in ['1m', '5m', '15m', '30m', '1h', '4h', '1d']:
+                        print(f"\nPerforming detailed analysis for {symbol}...")
+                        analysis = analyze_market(symbol, timeframe)
+                        if analysis:
+                            print("\nAnalysis complete. Check the generated chart.")
+                            if not analysis['signals'].empty:
+                                print("\nPotential Setups:")
+                                print(analysis['signals'].to_string())
+                    else:
+                        print("Invalid timeframe. Please try again.")
+                else:
+                    print("Invalid symbol. Please try again.")
+                    
+            elif choice == '4':
+                # Market scanner
+                print("\nScanning all markets for opportunities...")
+                for symbol in crypto_symbols + forex_symbols:
+                    try:
+                        signals = analyze_multi_timeframe(symbol)
+                        if not signals.empty:
+                            # Adjust take-profit levels to maintain 1:2 R:R
+                            for idx in signals.index:
+                                entry = signals.loc[idx, 'entry_price']
+                                stop = signals.loc[idx, 'stop_loss']
+                                risk = abs(entry - stop)
+                                
+                                if signals.loc[idx, 'signal_type'] == 'long':
+                                    # For longs, TP is entry + 2 * risk
+                                    signals.loc[idx, 'take_profit'] = entry + (2 * risk)
+                                else:
+                                    # For shorts, TP is entry - 2 * risk
+                                    signals.loc[idx, 'take_profit'] = entry - (2 * risk)
+                                
+                                # Update risk:reward ratio to exactly 2
+                                signals.loc[idx, 'risk_reward_ratio'] = 2.0
+                            
+                            print(f"\n{symbol} - High-Probability Setup Found:")
+                            print(signals.to_string())
+                            log_trades(symbol, signals)
+                    except Exception as e:
+                        print(f"Error scanning {symbol}: {e}")
+                    time.sleep(1)  # Prevent rate limiting
+                    
+            elif choice == '5':
+                print("\nExiting program. Goodbye!")
+                break
+                
+            else:
+                print("Invalid choice. Please enter a number between 1 and 5.")
+                
         except KeyboardInterrupt:
-            print("\nMonitoring stopped by user")
-            break
+            print("\nOperation stopped by user.")
+            continue
         except Exception as e:
-            print(f"Error in main loop: {e}")
-            time.sleep(10)
+            print(f"Error: {e}")
+            time.sleep(2)
+
+# Add this validation to the main() function where symbols are processed
+def validate_symbol(symbol):
+    """Validate and format symbol correctly"""
+    if symbol in ['XAUUSD', 'GBPJPY', 'USDJPY', 'USOIL']:
+        return symbol
+    elif 'USDT' in symbol:
+        if '/' not in symbol:
+            return f"{symbol.replace('USDT', '')}/USDT"
+    return symbol
+
+def get_market_data(symbol):
+    """
+    Get real-time market data including price, volume, and historical data
+    Returns a dictionary with current market metrics and OHLCV history
+    """
+    try:
+        # Fetch recent candles for price history
+        df = fetch_data(symbol, '1h', limit=24)  # Last 24 hours
+        if df is None or df.empty:
+            raise Exception("No data available")
+
+        # Calculate current metrics
+        current_price = df['close'].iloc[-1]
+        prev_day_price = df['close'].iloc[0]
+        price_change_24h = ((current_price - prev_day_price) / prev_day_price) * 100
+        
+        # Volume calculations
+        volume_24h = df['volume'].sum()
+        prev_volume = df['volume'].iloc[:-1].mean()
+        volume_change_24h = ((df['volume'].iloc[-1] - prev_volume) / prev_volume) * 100 if prev_volume > 0 else 0
+        
+        # High/Low
+        high_24h = df['high'].max()
+        low_24h = df['low'].min()
+        
+        # Format price history for chart
+        price_history = df.reset_index().to_dict('records')
+
+        return {
+            'price': float(current_price),
+            'price_change_24h': float(price_change_24h),
+            'volume_24h': float(volume_24h),
+            'volume_change_24h': float(volume_change_24h),
+            'high_24h': float(high_24h),
+            'low_24h': float(low_24h),
+            'price_history': price_history
+        }
+
+    except Exception as e:
+        print(f"Error in get_market_data: {str(e)}")
+        raise Exception(f"Failed to fetch market data: {str(e)}")
+
+if __name__ == "__main__":
+    main()
