@@ -29,7 +29,7 @@ def main():
     if symbol_type == "Crypto":
         symbols = ["BTC/USDT", "ETH/USDT", "XRP/USDT", "SOL/USDT", "ADA/USDT"]
     else:
-        symbols = ["XAUUSD", "GBPJPY", "USDJPY", "USOIL"]
+        symbols = ["XAUUSD", "GBPJPY", "USDJPY"]
     
     selected_symbol = st.sidebar.selectbox("Select Symbol", symbols)
 

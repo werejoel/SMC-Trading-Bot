@@ -408,6 +408,15 @@ def identify_liquidity_zones(df, window=10, threshold_pct=0.005):
     threshold = avg_price * threshold_pct
     
     liquidity_zones = []
+    
+    # Initialize columns with default values
+    default_zone = {
+        'type': '',
+        'level': 0.0,
+        'timestamp': None,
+        'strength': 0.0
+    }
+    
     for i in range(window, len(df) - window):
         # Check if this is a local high/low compared to surrounding candles
         is_swing_high = all(df['high'][i] >= df['high'][j] for j in range(i-window, i+window+1) if j != i)
@@ -418,28 +427,38 @@ def identify_liquidity_zones(df, window=10, threshold_pct=0.005):
             # Check if we already have a nearby liquidity zone
             is_unique = all(abs(zone['level'] - df['high'][i]) > threshold for zone in liquidity_zones if zone['type'] == 'liquidity_high')
             if is_unique:
-                liquidity_zones.append({
-                    'type': 'liquidity_high', 
-                    'level': df['high'][i], 
+                zone = default_zone.copy()
+                zone.update({
+                    'type': 'liquidity_high',
+                    'level': df['high'][i],
                     'timestamp': df['timestamp'][i],
                     'strength': sum(1 for j in range(i-window*2, i+window*2) if j >= 0 and j < len(df) and abs(df['high'][j] - df['high'][i]) < threshold)
                 })
+                liquidity_zones.append(zone)
         
         if is_swing_low:
             is_unique = all(abs(zone['level'] - df['low'][i]) > threshold for zone in liquidity_zones if zone['type'] == 'liquidity_low')
             if is_unique:
-                liquidity_zones.append({
-                    'type': 'liquidity_low', 
-                    'level': df['low'][i], 
+                zone = default_zone.copy()
+                zone.update({
+                    'type': 'liquidity_low',
+                    'level': df['low'][i],
                     'timestamp': df['timestamp'][i],
                     'strength': sum(1 for j in range(i-window*2, i+window*2) if j >= 0 and j < len(df) and abs(df['low'][j] - df['low'][i]) < threshold)
                 })
+                liquidity_zones.append(zone)
+    
+    # Convert to DataFrame with explicit columns
+    if not liquidity_zones:
+        # Return empty DataFrame with correct columns
+        return pd.DataFrame(columns=['type', 'level', 'timestamp', 'strength'])
+    
+    df_zones = pd.DataFrame(liquidity_zones)
     
     # Filter out weak liquidity zones (only keep those that have been tested multiple times)
-    strong_liquidity_zones = [zone for zone in liquidity_zones if zone['strength'] >= 3]
+    df_zones = df_zones[df_zones['strength'] >= 3].reset_index(drop=True)
     
-    return pd.DataFrame(strong_liquidity_zones)
-
+    return df_zones
 
 
 # ===== SUPPLY AND DEMAND ZONES Logic =====
